@@ -1,9 +1,21 @@
-<?php #connection.php
-# build connection between database and system
-$con = mysqli_connect("localhost", "root", "", "vexpress");
+<?php
+/*
+* connection.php
+* Establishes the database connection.
+*/
 
-# testing if connection succesfully
+// Build connection between database and system
+$con = mysqli_connect("localhost", "root", "", "ccms");
+
+// testing if connection succesfully
 if (!$con) {
-    die("Connection failed");
+    // Use error_log for production environments instead of die()
+    error_log("Database connection failed: " . mysqli_connect_error());
+    die("Connection failed. Please try again later.");
 }
+
+// Set charset to utf8mb4 for full unicode support
+mysqli_set_charset($con, "utf8mb4");
+
 ?>
+

@@ -1,18 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<?php include "pages/header.php"; ?>
-<?php include "admin.php"; ?>
-<?php // Function to get total sales
-function getTotalSales() {
-    include "../server/inc/connection.php";
-    $query = "SELECT SUM(total_fee) as total_sales FROM request";
-    $result = mysqli_query($con, $query);
-    $row = mysqli_fetch_assoc($result);
-    return $row['total_sales'];
-}
-
-$total_sales = getTotalSales();
+<?php
+/*
+* admin/index.php
+*
+* Main dashboard for the Admin/Staff panel.
+* Displays overview counts.
+*/
+include "pages/header.php"; // Includes assets
+include "admin.php";      // Includes session check, gets $logged_in_user_role
+// get.php is included in header.php, so dataCount functions are available
 ?>
 
 <body>
@@ -22,12 +20,12 @@ $total_sales = getTotalSales();
                 <div class="sidebar-header">
                     <div class="d-flex justify-content-between mt-0 px-2">
                         <a href="index.php">
-                            <img src="assets/images/logo.png" alt="Velocity Express">
+                            <img src="assets/images/logo.png" alt="CCMS Logo">
                             <div class="mt-1 mb-2 border-bottom pb-2"></div>
-                            <?php if (isset($_SESSION["admin"]) && $_SESSION["admin"] == "admin"): ?>
+                            <?php if (isset($logged_in_user_role) && $logged_in_user_role == "admin") : ?>
                                 <h6>‎ ‎ ‎<b>ADMINISTRATOR PAGE</b></h6>
-                            <?php else: ?>
-                                <h6>‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎<b>EMPLOYEE PAGE</b></h6>
+                            <?php else : ?>
+                                <h6>‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎<b>STAFF PAGE</b></h6>
                             <?php endif; ?>
                             <div class="border-bottom"></div>
                         </a>
@@ -41,66 +39,70 @@ $total_sales = getTotalSales();
                                 <span>Dashboard</span>
                             </a>
                         </li>
-                        <?php if (isset($_SESSION['admin']) && $_SESSION['admin'] == 'admin') : ?>
-                        <li class="sidebar-item ">
-                            <a href="customer.php" class='sidebar-link'>
-                                <i class="bi bi-people-fill"></i>
-                                <span>Customer</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="price.php" class='sidebar-link'>
-                                <i class="bi bi-table"></i>
-                                <span>Price Table</span>
-                            </a>
-                        </li>
-                        <?php endif; ?>
-                        <li class="sidebar-item">
-                            <a href="courier.php" class='sidebar-link'>
-                                <i class="bi bi-truck"></i>
-                                <span>Courier</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="message.php" class='sidebar-link'>
-                                <i class="bi bi-chat"></i>
-                                <span>Message</span>
-                            </a>
-                        </li>
-                        <?php if (isset($_SESSION['admin']) && $_SESSION['admin'] == 'admin') : ?>
-                            <li class="sidebar-item">
-                                <a href="branch.php" class='sidebar-link'>
-                                    <i class="bi bi-columns"></i>
-                                    <span>Branches</span>
+
+                        <!-- Admin-Only Links -->
+                        <?php if (isset($logged_in_user_role) && $logged_in_user_role == 'admin') : ?>
+                            <li class="sidebar-item ">
+                                <a href="student.php" class='sidebar-link'>
+                                    <i class="bi bi-people-fill"></i>
+                                    <span>Students</span>
                                 </a>
                             </li>
                         <?php endif; ?>
-                        <?php if (
-                            isset($_SESSION["admin"]) &&
-                            $_SESSION["admin"] == "admin"
-                        ): ?>
+
+                        <!-- All Staff Links -->
+                        <li class="sidebar-item">
+                            <a href="complaint.php" class='sidebar-link'>
+                                <i class="bi bi-exclamation-octagon-fill"></i>
+                                <span>Complaints</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="feedback.php" class='sidebar-link'>
+                                <i class="bi bi-chat-left-dots-fill"></i>
+                                <span>Feedback</span>
+                            </a>
+                        </li>
+
+                        <!-- Admin-Only Links -->
+                        <?php if (isset($logged_in_user_role) && $logged_in_user_role == 'admin') : ?>
                             <li class="sidebar-item">
-                                <a href="employee.php" class='sidebar-link'>
+                                <a href="department.php" class='sidebar-link'>
+                                    <i class="bi bi-building"></i>
+                                    <span>Departments</span>
+                                </a>
+                            </li>
+                        <?php endif; ?>
+
+                        <!-- Profile/Staff Link -->
+                        <?php if (isset($logged_in_user_role) && $logged_in_user_role == "admin") : ?>
+                            <li class="sidebar-item">
+                                <a href="staff.php" class='sidebar-link'>
+                                    <i class="bi bi-person-badge-fill"></i>
+                                    <span>Staff</span>
+                                </a>
+                            </li>
+                        <?php else : ?>
+                            <!-- Link for staff to view their own profile -->
+                            <li class="sidebar-item">
+                                <a href="staff_edit.php?staff_id=<?php echo htmlspecialchars($logged_in_staff_id); ?>" class='sidebar-link'>
                                     <i class="bi bi-person-fill"></i>
-                                    <span>Employee </span>
-                                </a>
-                            </li>
-                        <?php else: ?>
-                            <li class="sidebar-item">
-                            <a href="employee.php" class='sidebar-link'>
-                                <i class="bi bi-person-fill"></i>
-                                <span>Profile </span>
-                            </a>
-                        </li>
-                        <?php endif; ?>
-                        <?php if (isset($_SESSION['admin']) && $_SESSION['admin'] == 'admin') : ?>
-                            <li class="sidebar-item">
-                                <a href="area.php" class='sidebar-link'>
-                                    <i class="bi bi-geo-alt-fill"></i>
-                                    <span>Area</span>
+                                    <span>Profile</span>
                                 </a>
                             </li>
                         <?php endif; ?>
+
+                        <!-- Admin-Only Links -->
+                        <?php if (isset($logged_in_user_role) && $logged_in_user_role == 'admin') : ?>
+                            <li class="sidebar-item">
+                                <a href="dormitory.php" class='sidebar-link'>
+                                    <i class="bi bi-house-door-fill"></i>
+                                    <span>Dormitories</span>
+                                </a>
+                            </li>
+                        <?php endif; ?>
+
+                        <!-- All Staff Links -->
                         <li class="sidebar-item">
                             <a href="settings.php" class='sidebar-link'>
                                 <i class="bi bi-gear-fill"></i>
@@ -129,79 +131,77 @@ $total_sales = getTotalSales();
                 <div class="mt-3 mb-5 border-bottom pb-2"></div>
             </header>
             <div class="page-content">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="alert" style="text-align: right">
-                             <h4><b>Total Sales: RM <?php echo number_format($total_sales, 2); ?></b></h4>
-                         </div>
-                    </div>
-                </div>
+                <!-- Removed Total Sales Row -->
                 <section class="row">
                     <div class="col-12 col-lg-12">
                         <div class="row">
+                            <!-- Departments Card -->
                             <div class="col-6 col-lg-3 col-md-6">
                                 <div class="card">
                                     <div class="card-body px-3 py-4-5">
                                         <div class="row">
                                             <div class="col-md-4">
-                                                <div class="stats-icon">
-                                                    <i class="iconly-boldBookmark"></i>
+                                                <div class="stats-icon bg-primary">
+                                                    <i class="iconly-boldBookmark text-white"></i>
                                                 </div>
                                             </div>
                                             <div class="col-md-8">
-                                                <h6 class="text-muted font-semibold">Branches</h6>
-                                                <h6 class="font-extrabold mb-0"><?php echo dataCount('branch'); ?></h6>
+                                                <h6 class="text-muted font-semibold">Departments</h6>
+                                                <h6 class="font-extrabold mb-0"><?php dataCount('department'); ?></h6>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            <!-- Students Card -->
                             <div class="col-6 col-lg-3 col-md-6">
                                 <div class="card">
                                     <div class="card-body px-3 py-4-5">
                                         <div class="row">
                                             <div class="col-md-4">
-                                                <div class="stats-icon">
-                                                    <i class="iconly-boldProfile"></i>
+                                                <div class="stats-icon bg-success">
+                                                    <i class="iconly-boldProfile text-white"></i>
                                                 </div>
                                             </div>
                                             <div class="col-md-8">
-                                                <h6 class="text-muted font-semibold">Customers</h6>
-                                                <h6 class="font-extrabold mb-0"><?php echo dataCount('customer'); ?></h6>
+                                                <h6 class="text-muted font-semibold">Students</h6>
+                                                <h6 class="font-extrabold mb-0"><?php dataCount('student'); ?></h6>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            <!-- Staff Card -->
                             <div class="col-6 col-lg-3 col-md-6">
                                 <div class="card">
                                     <div class="card-body px-3 py-4-5">
                                         <div class="row">
                                             <div class="col-md-4">
-                                                <div class="stats-icon">
-                                                    <i class="iconly-boldAdd-User"></i>
+                                                <div class="stats-icon bg-info">
+                                                    <i class="iconly-boldAdd-User text-white"></i>
                                                 </div>
                                             </div>
                                             <div class="col-md-8">
-                                                <h6 class="text-muted font-semibold">Employee</h6>
-                                                <h6 class="font-extrabold mb-0"><?php echo dataCount('employee'); ?></h6>
+                                                <h6 class="text-muted font-semibold">Staff</h6>
+                                                <h6 class="font-extrabold mb-0"><?php dataCount('staff'); ?></h6>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            <!-- Total Complaints Card -->
                             <div class="col-6 col-lg-3 col-md-6">
                                 <div class="card">
                                     <div class="card-body px-3 py-4-5">
                                         <div class="row">
                                             <div class="col-md-4">
-                                                <div class="stats-icon">
-                                                    <i class="iconly-boldBookmark"></i>
+                                                <div class="stats-icon bg-warning">
+                                                    <i class="iconly-boldDocument text-white"></i>
                                                 </div>
                                             </div>
                                             <div class="col-md-8">
-                                                <h6 class="text-muted font-semibold">Courier Requests</h6>
-                                                <h6 class="font-extrabold mb-0"><?php echo dataCount('request'); ?></h6>
+                                                <h6 class="text-muted font-semibold">Total Complaints</h6>
+                                                <h6 class="font-extrabold mb-0"><?php dataCount('complaint'); ?></h6>
                                             </div>
                                         </div>
                                     </div>
@@ -209,71 +209,76 @@ $total_sales = getTotalSales();
                             </div>
                         </div>
                     </div>
+                    <!-- Complaint Status Row -->
                     <div class="col-12 col-lg-12">
                         <div class="row">
+                            <!-- Open Complaints Card -->
                             <div class="col-6 col-lg-3 col-md-6">
                                 <div class="card">
                                     <div class="card-body px-3 py-4-5">
                                         <div class="row">
                                             <div class="col-md-4">
-                                                <div class="stats-icon">
-                                                    <i class="iconly-boldShow"></i>
+                                                <div class="stats-icon bg-danger">
+                                                    <i class="iconly-boldTime-Circle text-white"></i>
                                                 </div>
                                             </div>
                                             <div class="col-md-8">
-                                                <h6 class="text-muted font-semibold">Pending Orders</h6>
-                                                <h6 class="font-extrabold mb-0"><?php echo dataCountWhere('request', ' tracking_status = 1 '); ?></h6>
+                                                <h6 class="text-muted font-semibold">Open Complaints</h6>
+                                                <h6 class="font-extrabold mb-0"><?php dataCountWhere('complaint', ' complaint_status = 1 '); ?></h6>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            <!-- In Progress Complaints Card -->
                             <div class="col-6 col-lg-3 col-md-6">
                                 <div class="card">
                                     <div class="card-body px-3 py-4-5">
                                         <div class="row">
                                             <div class="col-md-4">
-                                                <div class="stats-icon">
-                                                    <i class="iconly-boldBookmark"></i>
+                                                <div class="stats-icon bg-warning">
+                                                    <i class="iconly-boldWork text-white"></i>
                                                 </div>
                                             </div>
                                             <div class="col-md-8">
-                                                <h6 class="text-muted font-semibold">Accepted</h6>
-                                                <h6 class="font-extrabold mb-0"><?php echo dataCountWhere('request', ' tracking_status IN (2, 3) '); ?></h6>
+                                                <h6 class="text-muted font-semibold">In Progress</h6>
+                                                <h6 class="font-extrabold mb-0"><?php dataCountWhere('complaint', ' complaint_status = 2 '); ?></h6>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            <!-- Resolved Complaints Card -->
                             <div class="col-6 col-lg-3 col-md-6">
                                 <div class="card">
                                     <div class="card-body px-3 py-4-5">
                                         <div class="row">
                                             <div class="col-md-4">
-                                                <div class="stats-icon">
-                                                    <i class="iconly-boldBookmark"></i>
+                                                <div class="stats-icon bg-info">
+                                                    <i class="iconly-boldShield-Done text-white"></i>
                                                 </div>
                                             </div>
                                             <div class="col-md-8">
-                                                <h6 class="text-muted font-semibold">Cancel Orders</h6>
-                                                <h6 class="font-extrabold mb-0"><?php echo dataCountWhere('request', ' tracking_status = 5 '); ?></h6>
+                                                <h6 class="text-muted font-semibold">Resolved</h6>
+                                                <h6 class="font-extrabold mb-0"><?php dataCountWhere('complaint', ' complaint_status = 3 '); ?></h6>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            <!-- Closed Complaints Card -->
                             <div class="col-6 col-lg-3 col-md-6">
                                 <div class="card">
                                     <div class="card-body px-3 py-4-5">
                                         <div class="row">
                                             <div class="col-md-4">
-                                                <div class="stats-icon">
-                                                    <i class="iconly-boldBookmark"></i>
+                                                <div class="stats-icon bg-secondary">
+                                                    <i class="iconly-boldClose-Square text-white"></i>
                                                 </div>
                                             </div>
                                             <div class="col-md-8">
-                                                <h6 class="text-muted font-semibold">Completed Orders</h6>
-                                                <h6 class="font-extrabold mb-0"><?php echo dataCountWhere('request', ' tracking_status = 4'); ?></h6>
+                                                <h6 class="text-muted font-semibold">Closed Complaints</h6>
+                                                <h6 class="font-extrabold mb-0"><?php dataCountWhere('complaint', ' complaint_status = 4'); ?></h6>
                                             </div>
                                         </div>
                                     </div>
@@ -281,18 +286,17 @@ $total_sales = getTotalSales();
                             </div>
                         </div>
                     </div>
-
                 </section>
             </div>
-
+            <?php include "pages/footer.php"; ?>
         </div>
     </div>
+    
+    <!-- JS Includes -->
     <script src="assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
     <script src="assets/js/bootstrap.bundle.min.js"></script>
-
     <script src="assets/vendors/apexcharts/apexcharts.js"></script>
-
+    <!-- <script src="assets/js/pages/dashboard.js"></script> --> <!-- Removed default dashboard JS -->
     <script src="assets/js/main.js"></script>
 </body>
-
 </html>
