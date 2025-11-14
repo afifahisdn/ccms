@@ -5,9 +5,13 @@
 * Generates a PDF report for a single complaint.
 */
 
-// Include FPDF library and the API functions
+// 1. Include the FPDF library
 require "assets/plugin/pdf/fpdf.php";
-include "../server/api.php"; // Includes connection.php and get.php
+// 2. Include ONLY the files with the functions we need
+include_once "../server/inc/connection.php"; // Include connection first
+include_once "../server/inc/get.php";        // Include the file with the getComplaintReportData function
+
+
 
 // --- PDF Class Definition ---
 class PDF extends FPDF
@@ -16,7 +20,7 @@ class PDF extends FPDF
     function Header()
     {
         // Logo
-        if (file_exists('assets/images/logo.png')) {
+        if (file_exists('assets/images/logo.png')) { // Check if logo exists
             $this->Image('assets/images/logo.png', 10, 6, 30);
         }
         // Arial bold 15
@@ -44,6 +48,7 @@ class PDF extends FPDF
     function ComplaintDetails($complaint_id)
     {
         // Fetch data using the function from get.php
+        // This function already JOINS student, dormitory, category, and staff
         $data_result = getComplaintReportData($complaint_id);
 
         if ($data_result && $row = mysqli_fetch_assoc($data_result)) {
@@ -57,17 +62,9 @@ class PDF extends FPDF
             $this->Cell(40, 7, "Complaint ID:", 0, 0, "L", true);
             $this->Cell(0, 7, "#" . htmlspecialchars($row["complaint_id"]), 0, 1);
 
-            // Map status number to text
-            $status_text = match ((int)$row['complaint_status']) {
-                1 => 'Open',
-                2 => 'In Progress',
-                3 => 'Resolved',
-                4 => 'Closed',
-                5 => 'Withdrawn by Student',
-                default => 'Unknown',
-            };
+            // Use the status string directly from the DB
             $this->Cell(40, 7, "Current Status:", 0, 0, "L", true);
-            $this->Cell(0, 7, htmlspecialchars($status_text), 0, 1);
+            $this->Cell(0, 7, htmlspecialchars($row["complaint_status"]), 0, 1);
 
             $this->Cell(40, 7, "Date Submitted:", 0, 0, "L", true);
             $this->Cell(0, 7, date("Y-m-d H:i", strtotime($row["created_at"])), 0, 1);
@@ -88,7 +85,7 @@ class PDF extends FPDF
             $this->Cell(0, 7, htmlspecialchars($row["student_name"] ?? 'N/A'), 0, 1);
 
             $this->Cell(40, 7, "Student ID:", 0, 0, "L", true);
-            $this->Cell(0, 7, htmlspecialchars($row["student_id_number"] ?? 'N/A'), 0, 1);
+            $this->Cell(0, 7, htmlspecialchars($row["student_id"] ?? 'N/A'), 0, 1);
 
             $this->Cell(40, 7, "Email:", 0, 0, "L", true);
             $this->Cell(0, 7, htmlspecialchars($row["student_email"] ?? 'N/A'), 0, 1);
@@ -110,7 +107,7 @@ class PDF extends FPDF
             $this->Cell(0, 7, htmlspecialchars($row["room_number"]), 0, 1);
 
             $this->Cell(40, 7, "Category:", 0, 0, "L", true);
-            $this->Cell(0, 7, htmlspecialchars(ucfirst(str_replace('_', ' ', $row["complaint_category"]))), 0, 1);
+            $this->Cell(0, 7, htmlspecialchars(ucfirst($row["category_name"] ?? 'N/A')), 0, 1);
 
             $this->Cell(40, 7, "Urgency:", 0, 0, "L", true);
             $this->Cell(0, 7, htmlspecialchars(ucfirst($row["urgency_level"])), 0, 1);
@@ -122,20 +119,20 @@ class PDF extends FPDF
             $this->SetFont("Arial", "B", 10);
             $this->Cell(0, 7, "Description:", 0, 1);
             $this->SetFont("Arial", "", 10);
-            // Use MultiCell for text that may wrap
-            $this->MultiCell(0, 5, htmlspecialchars_decode($row["complaint_description"])); // Decode special chars for PDF
+            // Use htmlspecialchars_decode to render characters like ' properly in the PDF
+            $this->MultiCell(0, 5, htmlspecialchars_decode($row["complaint_description"]));
 
             if (!empty($row["photo"])) {
                 $this->Ln(2);
                 $this->SetFont("Arial", "B", 10);
                 $this->Cell(0, 7, "Attached Photo:", 0, 1);
                 $this->SetFont("Arial", "", 10);
-                // FPDF doesn't support relative web paths well. Just print the path.
                 $this->Cell(0, 5, "Photo stored at: " . htmlspecialchars($row["photo"]));
                 $this->Ln(5);
             } else {
                 $this->Ln(5);
             }
+
 
             // --- Assignment & Resolution ---
             $this->SetFont("Arial", "B", 12);
@@ -166,9 +163,9 @@ if ($complaint_id > 0) {
     $pdf->AliasNbPages(); // Enable page numbering footer '{nb}'
     $pdf->AddPage();
     $pdf->ComplaintDetails($complaint_id); // Call the function to populate details
-    // 'D' forces download, 'I' displays in browser
-    $pdf->Output('I', 'Complaint_Report_' . $complaint_id . '.pdf');
+    $pdf->Output('I', 'Complaint_Report_' . $complaint_id . '.pdf'); // 'I' displays in browser
 } else {
+    // This will run before any FPDF output if ID is invalid
     die("Invalid Complaint ID provided.");
 }
 ?>

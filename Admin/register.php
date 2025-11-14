@@ -8,41 +8,39 @@
 * Public-facing page for students to create a new account.
 * This file is in the /admin/ folder but acts as a public page.
 */
-include 'pages/header.php';
+include 'pages/header.php'; // Includes assets
 ?>
 
 <body>
     <div id="auth" class="bg-img">
         <div class="card">
             <div class="heading-wrapper">
-                <!-- Changed logo and title -->
-                <img src="assets/images/logo.png" alt="Logo" style="height: 40px;">
+                <img src="assets/images/logo.png" alt="CCMS Logo" style="height: 40px;">
                 <h2 class="mb-0">- Student Sign Up</h2>
             </div>
-            
+
             <!-- This form ID is used by add.js -> addStudent -->
-            <form id="basicform" method="post">
-                <div class="mb-3" style="margin-top: 75px">
+            <form id="basicform" method="post" onsubmit="return false;">
+                <div class="mb-3" style="margin-top: 15px">
                     <label for="name" class="form-label">Full Name</label>
                     <input type="text" class="form-control" name="name" id="name" aria-describedby="nameHelp" required>
                 </div>
                 <div class="mb-3">
-                    <label for="email" class="form-label">Email address</label>
-                    <input type="email" class="form-control" name="email" id="email" aria-describedby="emailHelp" required>
+                    <label for="email" class="form-label">Email address (@college.edu)</label>
+                    <input type="email" class="form-control" name="email" id="email" aria-describedby="emailHelp" placeholder="e.g., yourname@college.edu" required>
                 </div>
 
-                <!-- Added Student ID Number -->
+                <!-- UPDATED: This is the new Primary Key -->
                 <div class="mb-3">
                     <label for="student_id_number" class="form-label">Student ID Number</label>
-                    <input type="text" class="form-control" name="student_id_number" id="student_id_number" placeholder="e.g., STU2024001" required>
+                    <input type="text" class="form-control" name="student_id_number" id="student_id_number" placeholder="e.g., STU1234567" required>
                 </div>
 
                 <div class="mb-3">
                     <label for="phone" class="form-label">Phone Number</label>
-                    <input type="text" class="form-control" name="phone" id="phone" aria-describedby="phoneHelp" placeholder="e.g., 0123456789" required>
+                    <input type="text" class="form-control" name="phone" id="phone" aria-describedby="phoneHelp" placeholder="e.g., 012-3456789" required>
                 </div>
 
-                <!-- Added Room Number -->
                 <div class="mb-3">
                     <label for="room_number" class="form-label">Room Number</label>
                     <input type="text" class="form-control" name="room_number" id="room_number" placeholder="e.g., A-101" required>
@@ -60,7 +58,7 @@ include 'pages/header.php';
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label for="password" class="form-label">Password</label>
+                    <label for="password" class="form-label">Password (Min. 6 characters)</label>
                     <input type="password" class="form-control" name="password" id="password" required>
                 </div>
                 <div class="mb-3">
@@ -68,7 +66,7 @@ include 'pages/header.php';
                     <input type="password" class="form-control" name="conf_password" id="conf_password" required>
                 </div>
                 <div class="d-grid">
-                    <!-- Changed JS function call to addStudent (from add.js) -->
+                    <!-- Calls addStudent from add.js -->
                     <button class="btn btn-primary" onclick="addStudent(this.form)" type="button">Sign Up</button>
                 </div>
             </form>
@@ -83,7 +81,6 @@ include 'pages/header.php';
     body {
         background-color: #fff;
         /* fallback for non-supported browsers */
-        /* Changed background image to a more appropriate placeholder */
         background-image: url('assets/images/college_background.jpg');
         background-position: center;
         background-repeat: no-repeat;
@@ -91,20 +88,18 @@ include 'pages/header.php';
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+        min-height: 100vh; /* Use min-height to handle long content */
+        padding: 40px 0; /* Add some padding for scrolling */
         margin: 0;
     }
 
     .card {
-        width: 100%; /* Use 100% width with max-width */
+        width: 100%;
         max-width: 800px;
-        /* Adjust max-width to ensure card is not too large */
         height: auto;
-        /* Let the height be determined by content */
-        max-height: calc(100vh - 40px); /* Adjusted max-height */
-        margin-top: 40px;
-        margin-bottom: 40px; /* Added margin-bottom */
-        padding: 40px 60px; /* Adjusted padding */
+        max-height: calc(100vh - 40px);
+        margin: auto; /* Center the card */
+        padding: 40px 90px;
         border-radius: 10px;
         background-color: #ffffff;
         box-shadow: 2px 5px 20px rgba(0, 0, 0, 0.1);
@@ -115,14 +110,14 @@ include 'pages/header.php';
     .heading-wrapper {
         display: flex;
         align-items: center;
-        justify-content: center; /* Center horizontally */
-        margin-bottom: 2rem; /* Add space below header */
+        justify-content: center;
+        margin-bottom: 2rem;
         margin-top: 1rem;
     }
 
     .heading-wrapper img {
         height: 40px;
-        margin-right: 10px; /* Add space between logo and text */
+        margin-right: 10px;
     }
 
     .heading-wrapper h2 {
@@ -145,7 +140,8 @@ include 'pages/header.php';
     }
 
     .address-field {
-        min-height: 80px; /* Slightly reduced height */
+        min-height: 80px;
+        /* Adjusted height */
     }
 
     .btn-primary {
@@ -168,22 +164,26 @@ include 'pages/header.php';
     }
 
     @media screen and (max-width: 768px) {
+        body {
+            height: auto; /* Allow body to grow on mobile */
+            padding: 20px 0;
+        }
+        
         .card {
             max-width: 90%;
-            /* Adjust width for smaller screens */
-            padding: 25px 30px; /* Reduce padding on mobile */
-            margin-left: auto; /* Center on mobile */
-            margin-right: auto;
+            padding: 25px 30px;
+            margin: 20px auto; /* Ensure margin */
         }
 
         .heading-wrapper {
-            flex-direction: column; /* Stack logo and text */
+            flex-direction: column;
             margin-bottom: 1.5rem;
         }
-         .heading-wrapper img {
-             margin-right: 0;
-             margin-bottom: 10px;
-         }
+
+        .heading-wrapper img {
+            margin-right: 0;
+            margin-bottom: 10px;
+        }
     }
 </style>
 

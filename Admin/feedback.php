@@ -1,3 +1,6 @@
+<!DOCTYPE html>
+<html lang="en">
+
 <?php
 /*
 * admin/feedback.php
@@ -7,8 +10,7 @@
 */
 
 include "pages/header.php"; // Includes assets, connection, get
-include "admin.php";      // Includes session check, gets $logged_in_user_role, $logged_in_staff_id
-
+include "admin.php";      // Includes session check, sets $logged_in_user_role
 // $logged_in_user_role is available from admin.php
 ?>
 
@@ -64,6 +66,12 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role, 
                                 <a href="department.php" class='sidebar-link'>
                                     <i class="bi bi-building"></i>
                                     <span>Departments</span>
+                                </a>
+                            </li>
+                            <li class="sidebar-item">
+                                <a href="categories.php" class='sidebar-link'>
+                                    <i class="bi bi-tags-fill"></i>
+                                    <span>Categories</span>
                                 </a>
                             </li>
                         <?php endif; ?>
@@ -156,8 +164,9 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role, 
                                                 while ($row = mysqli_fetch_assoc($getall)) {
                                             ?>
                                                     <tr>
-                                                        <td><?php echo htmlspecialchars($row["name"]); ?></td>
-                                                        <td><?php echo htmlspecialchars($row["email"]); ?></td>
+                                                        <!-- These fields come from the JOIN in get.php -->
+                                                        <td><?php echo htmlspecialchars($row["name"] ?? 'N/A'); ?></td>
+                                                        <td><?php echo htmlspecialchars($row["email"] ?? 'N/A'); ?></td>
                                                         <td><?php echo htmlspecialchars($row["subject"]); ?></td>
                                                         <td><?php echo htmlspecialchars($row["message"]); ?></td>
                                                         <td><?php echo date("Y-m-d H:i", strtotime($row["date_updated"])); ?></td>
@@ -188,12 +197,11 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role, 
         </div>
     </div>
 
-    <!-- JS Includes -->
+    <!-- Scripts -->
     <script src="assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
     <script src="assets/js/bootstrap.bundle.min.js"></script>
-
+    
     <!-- Simple Datatables (included via assets.php) -->
-    <!-- <script src="assets/vendors/simple-datatables/simple-datatables.js"></script> -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (document.getElementById('datatablesSimple')) {
@@ -201,7 +209,7 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role, 
             }
         });
     </script>
-
+    
     <script src="assets/js/main.js"></script>
 </body>
 </html>

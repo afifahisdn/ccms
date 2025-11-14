@@ -6,13 +6,9 @@
 * Only accessible by 'admin' role.
 */
 
-include "pages/header.php";
-include "admin.php";
-// Ensure only admins can access this page
-include "checkAdmin.php";
-
-// $logged_in_user_role is available from admin.php
-// get.php is included in header.php, so getAllStudents/getAllDormitory are available
+include "pages/header.php"; // Includes assets, connection, get
+include "admin.php";      // Includes session check, gets $logged_in_user_role
+include "checkAdmin.php"; // Ensures only 'admin' role can access
 ?>
 
 <body>
@@ -37,6 +33,7 @@ include "checkAdmin.php";
                                 <span>Dashboard</span>
                             </a>
                         </li>
+
                         <li class="sidebar-item ">
                             <a href="student.php" class='sidebar-link'>
                                 <i class="bi bi-people-fill"></i>
@@ -130,6 +127,7 @@ include "checkAdmin.php";
                                             <select id="student_id" class="form-select" name="student_id" required>
                                                 <option value="">Please Select Student</option>
                                                 <?php
+                                                // Fetch Students
                                                 $getall_students = getAllStudents();
                                                 if ($getall_students) {
                                                     while ($student_row = mysqli_fetch_assoc($getall_students)) {
@@ -148,6 +146,7 @@ include "checkAdmin.php";
                                             <select id="dormitory_id" class="form-select" name="dormitory_id" required>
                                                 <option value="">Please Select Dormitory</option>
                                                 <?php
+                                                // Fetch Dormitories
                                                 $getall_dorms = getAllDormitory();
                                                 if ($getall_dorms) {
                                                     while ($dorm_row = mysqli_fetch_assoc($getall_dorms)) {
@@ -175,20 +174,23 @@ include "checkAdmin.php";
                                     </div>
 
                                     <div class="row">
-                                        <!-- Category Dropdown -->
+                                        <!-- === UPDATED CATEGORY DROPDOWN === -->
                                         <div class="col-md-6 mb-3">
-                                            <label class="form-label" for="complaint_category">Category <span class="text-danger">*</span></label>
-                                            <select id="complaint_category" class="form-select" name="complaint_category" required>
-                                                <option value="">Please Select</option>
-                                                <option value="plumbing">Plumbing</option>
-                                                <option value="electrical">Electrical</option>
-                                                <option value="furniture">Furniture</option>
-                                                <option value="cleaning">Cleaning</option>
-                                                <option value="internet">Internet</option>
-                                                <option value="security">Security</option>
-                                                <option value="pest_control">Pest Control</option>
-                                                <option value="heating_cooling">Heating/Cooling</option>
-                                                <option value="other">Other</option>
+                                            <label class="text-black" for="category_id">Category <span class="text-danger">*</span></label>
+                                            <!-- The name is now "category_id" -->
+                                            <select id="category_id" class='form-control' name="category_id" required>
+                                                <option value="">-- Select Category --</option>
+                                                <?php
+                                                // Use new function to get categories from DB
+                                                $getallCategories = getAllCategories();
+                                                if ($getallCategories) {
+                                                    while ($cat_row = mysqli_fetch_assoc($getallCategories)) {
+                                                        echo '<option value="' . $cat_row["category_id"] . '">'
+                                                            . htmlspecialchars(ucfirst($cat_row["category_name"]))
+                                                            . '</option>';
+                                                    }
+                                                }
+                                                ?>
                                             </select>
                                         </div>
                                         <!-- Urgency Level Dropdown -->
@@ -242,9 +244,6 @@ include "checkAdmin.php";
     <script src="assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/main.js"></script>
-    <!-- Parsley validation (if you want to use data-parsley-validate) -->
-    <!-- <script src="assets/vendors/parsleyjs/parsley.min.js"></script> -->
-    <!-- <script> document.getElementById('complaintFormAdmin').parsley(); </script> -->
 </body>
 
 </html>

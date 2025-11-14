@@ -7,7 +7,7 @@
 */
 
 include "pages/header.php"; // Includes assets, connection, get
-include "admin.php";      // Includes session check, gets $logged_in_user_role
+include "admin.php";      // Includes session check, sets $logged_in_user_role
 include "checkAdmin.php"; // Ensures only 'admin' role can access
 ?>
 
@@ -56,6 +56,13 @@ include "checkAdmin.php"; // Ensures only 'admin' role can access
                             <a href="department.php" class='sidebar-link'>
                                 <i class="bi bi-building"></i>
                                 <span>Departments</span>
+                            </a>
+                        </li>
+                        <!-- NEW CATEGORIES LINK -->
+                        <li class="sidebar-item">
+                            <a href="categories.php" class='sidebar-link'>
+                                <i class="bi bi-tags-fill"></i>
+                                <span>Categories</span>
                             </a>
                         </li>
                         <li class="sidebar-item">
@@ -198,7 +205,6 @@ include "checkAdmin.php"; // Ensures only 'admin' role can access
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     
     <!-- Simple Datatables (included via assets.php) -->
-    <!-- <script src="assets/vendors/simple-datatables/simple-datatables.js"></script> -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (document.getElementById('datatablesSimple')) {
@@ -209,4 +215,5 @@ include "checkAdmin.php"; // Ensures only 'admin' role can access
     
     <script src="assets/js/main.js"></script>
 </body>
+
 </html>

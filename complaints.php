@@ -1,26 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
 <?php
 /*
 * complaints.php
+*
 * Displays a list of all complaints submitted by the logged-in student.
 * Requires auth.php to be included first.
 */
 
 // Includes session_start, db connection, settings fetch ($res)
 include "pages/header.php";
-// Includes student session check and fetches $student_data
+// Includes student session check and fetches $student_data and $student_id (VARCHAR)
 include "auth.php";
-// Make sure get.php is included if not already by header/auth
+// Make sure get.php is included (it's also in header.php, but include_once is safe)
 include_once "server/inc/get.php";
+// Make sure update.php is included for the auto-close function
+include_once "server/inc/update.php";
+
+// --- POOR MAN'S CRON JOB ---
+// Run the auto-close logic every time this page is loaded.
+autoCloseComplaints();
+// --- END CRON JOB ---
 ?>
 
 <head>
-    <!-- Add head content if needed, like title override -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Complaints - CCMS</title>
     <!-- CSS is included from pages/header.php -->
     <!-- Font Awesome for icons (included via pages/assets.php) -->
-    <!-- iziToast CSS (included via pages/assets.php) -->
 </head>
 
 <body data-spy="scroll" data-target=".site-navbar-target" data-offset="200">
@@ -59,7 +67,7 @@ include_once "server/inc/get.php";
             <div class="row align-items-center">
                 <div class="col-6 col-xl-2 site-logo">
                     <a href="index.php" class="text-white h5 mb-0">
-                        <img src="server/uploads/settings/<?php echo htmlspecialchars($res['header_image'] ?? 'logo.png'); ?>" alt="CCMS Logo" style="max-width: 130px;">
+                        <img src="server/uploads/settings/logo.png" alt="CCMS Logo" style="max-width: 70px; padding: 8px;">
                     </a>
                 </div>
                 <div class="col-6 col-md-10 d-xl-none text-right">
@@ -95,8 +103,7 @@ include_once "server/inc/get.php";
                 <div class="col-md-12 mb-5">
 
                     <?php
-                    // Fetch complaints for the logged-in student
-                    // Ensure getAllComplaintsByStudentID joins with dormitory table
+                    // Fetch complaints for the logged-in student (VARCHAR student_id)
                     $getall = getAllComplaintsByStudentID($_SESSION["student_id"]);
 
                     if (!$getall) {
@@ -110,9 +117,9 @@ include_once "server/inc/get.php";
                         // Loop through complaints
                         while ($row = mysqli_fetch_assoc($getall)) {
                             $complaint_id = $row["complaint_id"];
-                            $complaint_status = (int)$row["complaint_status"]; // Store status for easier access
+                            $complaint_status = $row["complaint_status"]; // This is now a string
                     ?>
-                            <article class="card mt-4 mb-4 shadow-sm complaint-card status-<?php echo $complaint_status; ?>">
+                            <article class="card mt-4 mb-4 shadow-sm complaint-card status-<?php echo strtolower(str_replace(' ', '', $complaint_status)); ?>">
                                 <header class="card-header text-white bg-dark d-flex justify-content-between align-items-center">
                                     <span>Complaint ID: #<?php echo htmlspecialchars($complaint_id); ?></span>
                                     <span>Submitted: <?php echo date("d M Y, H:i", strtotime($row["created_at"])); ?></span>
@@ -126,32 +133,13 @@ include_once "server/inc/get.php";
                                             <strong>Room:</strong> <?php echo htmlspecialchars($row['room_number']); ?>
                                         </div>
                                         <div class="col-md-4">
-                                            <strong>Category:</strong> <?php echo ucwords(str_replace('_', ' ', htmlspecialchars($row['complaint_category']))); ?><br>
+                                            <strong>Category:</strong> <?php echo htmlspecialchars(ucfirst($row['category_name'] ?? 'N/A')); ?><br>
                                             <strong>Urgency:</strong> <span class="urgency-<?php echo strtolower(htmlspecialchars($row['urgency_level'])); ?>"><?php echo ucfirst(htmlspecialchars($row['urgency_level'])); ?></span>
                                         </div>
                                         <div class="col-md-4">
                                             <strong>Current Status:</strong>
-                                            <span class="status-<?php echo $complaint_status; ?>">
-                                                <?php
-                                                // Display status text based on number
-                                                switch ($complaint_status) {
-                                                    case 1:
-                                                        echo "Open";
-                                                        break;
-                                                    case 2:
-                                                        echo "In Progress";
-                                                        break;
-                                                    case 3:
-                                                        echo "Resolved";
-                                                        break;
-                                                    case 4:
-                                                        echo "Closed";
-                                                        break;
-                                                    default:
-                                                        echo "Unknown";
-                                                        break;
-                                                }
-                                                ?>
+                                            <span class="status-<?php echo strtolower(str_replace(' ', '', $complaint_status)); ?>">
+                                                <?php echo htmlspecialchars($complaint_status); ?>
                                             </span>
                                             <br>
                                             <?php if (!empty($row['date_resolved'])) : ?>
@@ -162,7 +150,7 @@ include_once "server/inc/get.php";
 
                                     <?php if (!empty($row['complaint_description'])) : ?>
                                         <p class="mb-2"><strong>Description:</strong></p>
-                                        <p class="text-muted" style="white-space: pre-wrap;"><?php echo htmlspecialchars($row['complaint_description']); ?></p>
+                                        <p class="text-muted" style="white-space: pre-wrap; color: #262323 !important;"><?php echo htmlspecialchars($row['complaint_description']); ?></p>
                                     <?php endif; ?>
 
                                     <?php if (!empty($row['photo'])) : ?>
@@ -173,39 +161,64 @@ include_once "server/inc/get.php";
                                         <p class="resolution-notes mt-3"><strong>Resolution Notes:</strong><br><?php echo nl2br(htmlspecialchars($row['resolution_notes'])); ?></p>
                                     <?php endif; ?>
 
-                                    <!-- Status Tracking Bar -->
+                                    <!-- Status Tracking Bar (Uses ENUM strings) -->
                                     <div class="track mt-4">
-                                        <div class="step <?php if ($complaint_status >= 1) echo "active open"; ?>">
-                                            <span class="icon"> <i class="fa fa-folder-open"></i> </span>
-                                            <span class="text">Open</span>
-                                        </div>
-                                        <div class="step <?php if ($complaint_status >= 2) echo "active inprogress"; ?>">
-                                            <span class="icon"> <i class="fa fa-cogs"></i> </span>
-                                            <span class="text">In Progress</span>
-                                        </div>
-                                        <div class="step <?php if ($complaint_status >= 3) echo "active resolved"; ?>">
-                                            <span class="icon"> <i class="fa fa-check-circle"></i> </span>
-                                            <span class="text">Resolved</span>
-                                        </div>
-                                        <div class="step <?php if ($complaint_status >= 4) echo "active closed"; ?>">
-                                            <span class="icon"> <i class="fa fa-archive"></i> </span>
-                                            <span class="text">Closed</span>
-                                        </div>
+                                        <?php
+                                        $isOpen = in_array($complaint_status, ['Open', 'In Progress', 'Resolved', 'Closed']);
+                                        $isInProgress = in_array($complaint_status, ['In Progress', 'Resolved', 'Closed']);
+                                        $isResolved = in_array($complaint_status, ['Resolved', 'Closed']);
+                                        $isClosed = ($complaint_status == 'Closed');
+                                        $isWithdrawn = ($complaint_status == 'Withdrawn');
+
+                                        if ($isWithdrawn) {
+                                            echo "<p class='text-danger w-100 text-center p-3'><strong>Complaint Withdrawn.</strong></p>";
+                                        } else {
+                                        ?>
+                                            <div class="step <?php if ($isOpen) echo "active open"; ?>">
+                                                <span class="icon"> <i class="fa fa-folder-open"></i> </span>
+                                                <span class="text">Open</span>
+                                            </div>
+                                            <div class="step <?php if ($isInProgress) echo "active inprogress"; ?>">
+                                                <span class="icon"> <i class="fa fa-cogs"></i> </span>
+                                                <span class="text">In Progress</span>
+                                            </div>
+                                            <div class="step <?php if ($isResolved) echo "active resolved"; ?>">
+                                                <span class="icon"> <i class="fa fa-check-circle"></i> </span>
+                                                <span class="text">Resolved</span>
+                                            </div>
+                                            <div class="step <?php if ($isClosed) echo "active closed"; ?>">
+                                                <span class="icon"> <i class="fa fa-archive"></i> </span>
+                                                <span class="text">Closed</span>
+                                            </div>
+                                        <?php } ?>
                                     </div>
 
                                     <hr>
 
-                                    <!-- Action Button -->
+                                    <!-- === UPDATED ACTION BUTTONS === -->
                                     <div class="row">
                                         <div class="col-md-12">
-                                            <?php if ($complaint_status == 1) { // Only show withdraw if status is 'Open' 
-                                            ?>
+                                            <?php if ($complaint_status == 'Open') : ?>
+                                                <!-- Show Withdraw button -->
                                                 <button type="button" onclick="withdrawComplaint(<?php echo $complaint_id; ?>)" class="btn btn-sm btn-danger">
                                                     <i class="fa fa-times-circle"></i> Withdraw Complaint
                                                 </button>
-                                            <?php } else { ?>
-                                                <p class="text-muted small">This complaint can no longer be withdrawn.</p>
-                                            <?php } ?>
+                                            <?php elseif ($complaint_status == 'Resolved') : ?>
+                                                <!-- Show Approve/Re-Open buttons -->
+                                                <div class="alert alert-info p-3">
+                                                    <h5 class="alert-heading">Action Needed</h5>
+                                                    <p class="mb-2">This complaint is marked as "Resolved" by staff. Please review the resolution notes (if any) and either approve it (which will close it) or re-open it if the issue is not fixed.</p>
+                                                    <button type="button" onclick="approveComplaint(<?php echo $complaint_id; ?>)" class="btn btn-success me-2">
+                                                        <i class="fa fa-check"></i> Approve & Close
+                                                    </button>
+                                                    <button type="button" onclick="reopenComplaint(<?php echo $complaint_id; ?>)" class="btn btn-warning">
+                                                        <i class="fa fa-folder-open"></i> Re-Open Complaint
+                                                    </button>
+                                                </div>
+                                            <?php else : ?>
+                                                <!-- Show a simple message for In Progress, Closed, or Withdrawn -->
+                                                <p class="text-muted small">No actions are available for this complaint.</p>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
 
@@ -222,7 +235,7 @@ include_once "server/inc/get.php";
 
     <?php include "pages/footer.php"; ?>
 
-    <!-- JS Includes (jQuery, iziToast, SweetAlert are in assets.php) -->
+    <!-- JS Includes (loaded via pages/header.php -> assets.php) -->
     <script src="js/jquery-migrate-3.0.1.min.js"></script>
     <script src="js/jquery-ui.js"></script>
     <script src="js/jquery.easing.1.3.js"></script>
@@ -236,13 +249,11 @@ include_once "server/inc/get.php";
     <script src="js/aos.js"></script>
 
     <!-- Custom JS files (loaded via assets.php) -->
-    <!-- <script src="admin/assets/plugin/iziToast-master/dist/js/iziToast.min.js"></script> -->
-    <!-- <script src="admin/assets/js/include/alerts.js"></script>  -->
-    <!-- <script src="admin/assets/js/include/homejs.js"></script>  -->
+    <!-- <script src="admin/assets/js/include/alerts.js"></script> -->
+    <!-- <script src="admin/assets/js/include/homejs.js"></script> -->
     <!-- <script src="admin/assets/js/include/delete.js"></script> -->
 
     <script src="js/main.js"></script> <!-- General template JS -->
-
 
     <!-- Custom CSS for Status Bar and Complaint Card -->
     <style>
@@ -283,64 +294,48 @@ include_once "server/inc/get.php";
         /* Urgency Colors */
         .urgency-low {
             color: #28a745;
-            font-weight: bold;
         }
-
-        /* Green */
         .urgency-medium {
             color: #ffc107;
-            font-weight: bold;
         }
-
-        /* Yellow */
         .urgency-high {
             color: #fd7e14;
-            font-weight: bold;
         }
-
-        /* Orange */
         .urgency-critical {
             color: #dc3545;
-            font-weight: bold;
         }
-
-        /* Red */
 
         /* Status Colors (for text and card border) */
-        .status-1 {
+        .status-open {
             color: #007bff;
         }
-
-        /* Blue for Open */
-        .status-2 {
+        .status-inprogress {
             color: #ffc107;
         }
-
-        /* Yellow for In Progress */
-        .status-3 {
+        .status-resolved {
             color: #28a745;
         }
-
-        /* Green for Resolved */
-        .status-4 {
+        .status-closed {
             color: #6c757d;
         }
+        .status-withdrawn {
+            color: #dc3545;
+        }
 
-        /* Grey for Closed */
-        .complaint-card.status-1 {
+        .complaint-card.status-open {
             border-left-color: #007bff;
         }
-
-        .complaint-card.status-2 {
+        .complaint-card.status-inprogress {
             border-left-color: #ffc107;
         }
-
-        .complaint-card.status-3 {
+        .complaint-card.status-resolved {
             border-left-color: #28a745;
         }
-
-        .complaint-card.status-4 {
+        .complaint-card.status-closed {
             border-left-color: #6c757d;
+        }
+        .complaint-card.status-withdrawn {
+            border-left-color: #dc3545;
         }
 
         /* Tracking Bar Styles */
@@ -468,8 +463,7 @@ include_once "server/inc/get.php";
         .track .step.active.closed~.step::before {
             background: #e9ecef;
         }
-
-        /* Although none follow */
     </style>
 </body>
+
 </html>

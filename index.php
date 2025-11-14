@@ -13,16 +13,13 @@ include "pages/header.php";
 
 // Check if the user has submitted the complaint status form
 if (isset($_POST["complaint_id"])) {
-    // Get the complaint ID from the POST request
     $complaint_id = $_POST["complaint_id"];
 
     // Basic validation (ensure it's numeric)
     if (is_numeric($complaint_id)) {
-        // Redirect the user to the complaint_status.php file
         header("Location: complaint_status.php?complaint_id=$complaint_id");
         exit();
     } else {
-        // Optional: Handle invalid input (e.g., set an error message)
         $error_message = "Invalid Complaint ID format. Please enter numbers only.";
     }
 }
@@ -69,7 +66,6 @@ if (isset($_POST["complaint_id"])) {
                             </button>
                             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
                                 <a class="dropdown-item" href="?lang=en">English</a>
-                                <!-- Add other languages if needed -->
                             </div>
                         </div>
 
@@ -77,10 +73,10 @@ if (isset($_POST["complaint_id"])) {
                         ?>
                             <!-- Guest Links -->
                             <a href="admin/register.php" class="quick-link d-inline-block">Signup</a>
-                            <a href="admin/login.php" class="quick-link d-inline-block">Login</a> <!-- Link to student login -->
+                            <a href="admin/login.php" class="quick-link d-inline-block">Login</a>
                         <?php else : ?>
                             <!-- Logged-in Student Links -->
-                            <a href="admin/logout.php" class="quick-link d-inline-block">Logout</a> <!-- Link to student logout -->
+                            <a href="admin/logout.php" class="quick-link d-inline-block">Logout</a>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -94,7 +90,7 @@ if (isset($_POST["complaint_id"])) {
 
                 <div class="col-6 col-xl-2 site-logo">
                     <a href="index.php" class="text-white h5 mb-0">
-                        <img src="server/uploads/settings/logo.png" alt="CCMS Logo" style="max-width: 130px;">
+                        <img src="server/uploads/settings/logo.png" alt="CCMS Logo" style="max-width: 70px; padding: 8px;">
                     </a>
                 </div>
 
@@ -132,10 +128,11 @@ if (isset($_POST["complaint_id"])) {
         <!-- End Main Navigation -->
 
     </header>
-
     <?php if (isset($_SESSION["student_id"])) { // Check for student_id 
     ?>
-        <!-- Logged-in Student Dashboard Section -->
+        <!-- =================================== -->
+        <!-- LOGGED-IN STUDENT DASHBOARD SECTION -->
+        <!-- =================================== -->
         <div class="site-blocks-cover overlay" style="background-image: url(<?php echo $subheader_src; ?>);" data-aos="fade" data-stellar-background-ratio="0.5" id="section-customer">
             <div class="container">
                 <div class="row align-items-center justify-content-center text-center">
@@ -150,7 +147,7 @@ if (isset($_POST["complaint_id"])) {
                             <div class="btnMenu">
                                 <a href="complaints.php" class="nav-link">
                                     <div class="icon">
-                                        <img src="Menu/Track.png" alt="My Complaints Icon">
+                                        <img src="Menu/Complaint.png" alt="My Complaints Icon">
                                     </div>
                                     <h4 class="text-dark mt-3"><b>My Complaints</b></h4>
                                 </a>
@@ -158,9 +155,9 @@ if (isset($_POST["complaint_id"])) {
                             <div class="btnMenu">
                                 <a href="submit_complaint.php" class="nav-link">
                                     <div class="icon">
-                                        <img src="Menu/Request.png" alt="Submit Complaint Icon">
+                                        <img src="Menu/Submit.png" alt="Submit Complaint Icon">
                                     </div>
-                                    <h4 class="text-dark mt-3"><b>Submit Complaint</b></h4>
+                                    <h4 class="text-dark mt-3" style="width:max-content;"><b>Submit Complaint</b></h4>
                                 </a>
                             </div>
                             <div class="btnMenu">
@@ -178,7 +175,9 @@ if (isset($_POST["complaint_id"])) {
         </div>
 
     <?php } else { ?>
-        <!-- Guest "Check Complaint Status" Section -->
+        <!-- =================================== -->
+        <!-- GUEST "CHECK STATUS" SECTION      -->
+        <!-- =================================== -->
         <div class="site-blocks-cover overlay" style="background-image: url(<?php echo $header_src; ?>);" data-aos="fade" data-stellar-background-ratio="0.5" id="section-track-and-trace">
             <div class="container">
                 <div class="row align-items-center justify-content-center text-center">
@@ -202,8 +201,9 @@ if (isset($_POST["complaint_id"])) {
             </div>
         </div>
     <?php } ?>
-
-    <!-- About Section -->
+<!-- =================================== -->
+    <!-- ABOUT SECTION                       -->
+    <!-- =================================== -->
     <div class="site-section" id="section-about">
         <div class="container">
             <div class="row mb-5 align-items-center" style="margin-top: 6rem">
@@ -220,7 +220,9 @@ if (isset($_POST["complaint_id"])) {
         </div>
     </div>
 
-    <!-- Contact/Feedback Section -->
+    <!-- =================================== -->
+    <!-- CONTACT / FEEDBACK SECTION -->
+    <!-- =================================== -->
     <div class="site-section bg-light" id="section-contact">
         <div class="container">
             <div class="row justify-content-center mb-5" style="margin-top: 4rem">
@@ -229,42 +231,48 @@ if (isset($_POST["complaint_id"])) {
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-7 mb-5">
-                    <!-- Form for feedback -->
-                    <form class="p-5 bg-white rounded shadow" method="post">
-                        <div class="row form-group mb-3">
-                            <div class="col-md-12">
-                                <label class="text-black" for="name">Name</label>
-                                <input type="text" name="name" id="name" class="form-control" required>
+
+                <!-- This section now checks if the student is logged in -->
+                <?php if (isset($_SESSION["student_id"])) : ?>
+                    <!-- IF LOGGED IN: Show Feedback Form -->
+                    <div class="col-md-7 mb-5">
+                        <form class="p-5 bg-white rounded shadow" method="post" onsubmit="return false;">                            
+                            <div class="row form-group mb-3">
+                                <div class="col-md-12">
+                                    <label class="text-black" for="subject">Subject</label>
+                                    <input type="text" name="subject" id="subject" class="form-control" required>
+                                </div>
                             </div>
-                        </div>
-                        <div class="row form-group mb-3">
-                            <div class="col-md-12">
-                                <label class="text-black" for="email">Email</label>
-                                <input type="email" name="email" id="email" class="form-control" required>
+                            <div class="row form-group mb-3">
+                                <div class="col-md-12">
+                                    <label class="text-black" for="message">Message / Feedback</label>
+                                    <textarea name="message" id="message" cols="30" rows="5" class="form-control" required></textarea>
+                                </div>
                             </div>
-                        </div>
-                        <div class="row form-group mb-3">
-                            <div class="col-md-12">
-                                <label class="text-black" for="subject">Subject</label>
-                                <input type="text" name="subject" id="subject" class="form-control" required>
+                            <!-- Hidden student_id to send with the form -->
+                            <input type="hidden" name="student_id" id="student_id_feedback" value="<?php echo htmlspecialchars($_SESSION["student_id"]); ?>">
+
+                            <div class="row form-group">
+                                <div class="col-md-12">
+                                    <!-- Updated onclick function -->
+                                    <input type="button" onclick="addFeedback(this.form)" value="Send Feedback" class="btn btn-primary py-2 px-4 text-white">
+                                </div>
                             </div>
+                        </form>
+                    </div>
+                <?php else : ?>
+                    <!-- IF GUEST: Show "Please log in" message -->
+                    <div class="col-md-7 mb-5">
+                        <div class="p-5 bg-white rounded shadow text-center">
+                            <h4 class="text-primary">Want to submit feedback?</h4>
+                            <p class="lead">Please log in to your student account to send us feedback or suggestions.</p>
+                            <a href="admin/login.php" class="btn btn-primary py-2 px-4 text-white">Log In</a>
                         </div>
-                        <div class="row form-group mb-3">
-                            <div class="col-md-12">
-                                <label class="text-black" for="message">Message / Feedback</label>
-                                <textarea name="message" id="message" cols="30" rows="5" class="form-control" required></textarea>
-                            </div>
-                        </div>
-                        <div class="row form-group">
-                            <div class="col-md-12">
-                                <input type="button" onclick="addFeedback(this.form)" value="Send Feedback" class="btn btn-primary py-2 px-4 text-white">
-                            </div>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+                <?php endif; ?>
+
+                <!-- Contact Info Box (Visible to all) -->
                 <div class="col-md-5">
-                    <!-- Contact Info Box -->
                     <div class="p-4 mb-3 bg-white rounded shadow">
                         <p class="mb-2 font-weight-bold">Address</p>
                         <p class="mb-4"><?php echo htmlspecialchars($res["company_address"] ?? 'College Address'); ?></p>
@@ -296,13 +304,11 @@ if (isset($_POST["complaint_id"])) {
     <script src="js/bootstrap-datepicker.min.js"></script>
     <script src="js/aos.js"></script>
 
-    <!-- iziToast and SweetAlert are included in pages/assets.php -->
-    
-    <!-- Custom JS files (loaded via pages/assets.php) -->
+    <!-- Custom JS files (loaded via pages/header.php -> assets.php) -->
     <!-- <script src="admin/assets/js/include/validation.js"></script> -->
     <!-- <script src="admin/assets/js/include/alerts.js"></script> -->
     <!-- <script src="admin/assets/js/include/homejs.js"></script> -->
-    
+
     <script src="js/main.js"></script> <!-- General template JS -->
 
 </body>

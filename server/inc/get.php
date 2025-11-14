@@ -2,7 +2,7 @@
 /*
 * get.php
 *
-* Contains all functions for retrieving data from the CCMS database.
+* Contains all functions for RETRIEVING data from the CCMS database.
 */
 
 // ===================================
@@ -66,7 +66,7 @@ function checkDepartmentByName($department_name)
         return $count;
     } else {
         error_log("Error preparing checkDepartmentByName statement: " . mysqli_error($con));
-        return -1; // Indicate error
+        return -1;
     }
 }
 
@@ -141,26 +141,72 @@ function checkDormitoryByNameOrCode($dormitory_name, $dormitory_code)
 
 
 // ===================================
-// Complaint Functions
+// Category Functions (NEW)
+// ===================================
+
+/**
+ * Gets all non-deleted complaint categories from the 'categories' table.
+ * @return mysqli_result|false The result set on success, false on failure.
+ */
+function getAllCategories()
+{
+    include "connection.php";
+    // Now respects the is_deleted flag
+    $sql = "SELECT * FROM categories WHERE is_deleted = 0 ORDER BY category_name ASC";
+    $result = mysqli_query($con, $sql);
+    if (!$result) {
+        error_log("Error fetching categories: " . mysqli_error($con));
+        return false;
+    }
+    return $result;
+}
+
+/**
+ * Checks if a category name already exists (case-insensitive).
+ * @param string $category_name
+ * @return int Count (0 or 1), or -1 on error.
+ */
+function checkCategoryByName($category_name)
+{
+    include "connection.php";
+    $sql = "SELECT category_id FROM categories WHERE LOWER(category_name) = LOWER(?) AND is_deleted = 0";
+    $stmt = mysqli_prepare($con, $sql);
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "s", $category_name);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_store_result($stmt);
+        $count = mysqli_stmt_num_rows($stmt);
+        mysqli_stmt_close($stmt);
+        return $count;
+    } else {
+        error_log("Error preparing checkCategoryByName statement: " . mysqli_error($con));
+        return -1; // Indicate error
+    }
+}
+
+
+// ===================================
+// Complaint Functions (UPDATED)
 // ===================================
 
 /**
  * Gets all complaints submitted by a specific student.
- * Joins with dormitory table.
- * @param int $student_id
+ * Joins with dormitory and categories tables.
+ * @param string $student_id (VARCHAR)
  * @return mysqli_result|false The result set on success, false on failure.
  */
 function getAllComplaintsByStudentID($student_id)
 {
     include "connection.php";
-    $sql = "SELECT c.*, d.dormitory_name 
+    $sql = "SELECT c.*, d.dormitory_name, cat.category_name 
             FROM complaint c
             LEFT JOIN dormitory d ON c.dormitory_id = d.dormitory_id
+            LEFT JOIN categories cat ON c.category_id = cat.category_id
             WHERE c.is_deleted = 0 AND c.student_id = ? 
-            ORDER BY c.created_at DESC"; // Order by most recent
+            ORDER BY c.created_at DESC";
     $stmt = mysqli_prepare($con, $sql);
     if ($stmt) {
-        mysqli_stmt_bind_param($stmt, "i", $student_id);
+        mysqli_stmt_bind_param($stmt, "s", $student_id); // 's' for VARCHAR student_id
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
         mysqli_stmt_close($stmt);
@@ -172,19 +218,22 @@ function getAllComplaintsByStudentID($student_id)
 }
 
 /**
- * Gets a specific complaint by its ID for public status check.
- * Joins with dormitory, student, and staff tables.
+ * Gets a specific complaint by its ID.
+ * Joins with all related tables.
  * @param int $complaint_id
  * @return mysqli_result|false The result set on success, false on failure.
  */
 function getComplaintByID($complaint_id)
 {
     include "connection.php";
-    $sql = "SELECT c.*, d.dormitory_name, s.name as student_name, st.name as staff_name
+    $sql = "SELECT c.*, d.dormitory_name, s.name as student_name, s.email as student_email, 
+                   s.phone as student_phone, s.student_id, st.name as staff_name,
+                   cat.category_name
             FROM complaint c
             LEFT JOIN dormitory d ON c.dormitory_id = d.dormitory_id
             LEFT JOIN student s ON c.student_id = s.student_id
             LEFT JOIN staff st ON c.assigned_staff_id = st.staff_id 
+            LEFT JOIN categories cat ON c.category_id = cat.category_id
             WHERE c.is_deleted = 0 AND c.complaint_id = ?";
     $stmt = mysqli_prepare($con, $sql);
     if ($stmt) {
@@ -200,35 +249,80 @@ function getComplaintByID($complaint_id)
 }
 
 /**
- * Gets all non-deleted complaints for the admin/staff view.
- * Joins with student and dormitory tables.
+ * Gets all non-deleted complaints for the admin/staff view, with filtering.
+ * Joins with student, dormitory, and categories tables.
+ * @param array $filters (e.g., ['status' => 'Open', 'dorm_id' => 1, 'search_query' => 'leak'])
  * @return mysqli_result|false The result set on success, false on failure.
  */
-function getAllComplaints()
+function getFilteredComplaints($filters = [])
 {
     include "connection.php";
-    $sql = "SELECT c.*, s.name as student_name, d.dormitory_name 
+    
+    $sql = "SELECT c.*, s.name as student_name, d.dormitory_name, cat.category_name 
             FROM complaint c 
             LEFT JOIN student s ON c.student_id = s.student_id 
             LEFT JOIN dormitory d ON c.dormitory_id = d.dormitory_id 
-            WHERE c.is_deleted = 0 
-            ORDER BY c.created_at DESC";
-    $result = mysqli_query($con, $sql);
-    if (!$result) {
-        error_log("Error fetching all complaints: " . mysqli_error($con));
+            LEFT JOIN categories cat ON c.category_id = cat.category_id
+            WHERE c.is_deleted = 0";
+    
+    $params = [];
+    $types = "";
+
+    // --- NEW: General Search Query ---
+    if (!empty($filters['search_query'])) {
+        // Search by ID, Title, Student Name, or Room Number
+        $sql .= " AND (c.complaint_id = ? OR c.complaint_title LIKE ? OR s.name LIKE ? OR c.room_number LIKE ?)";
+        $search_term = "%" . $filters['search_query'] . "%";
+        $params[] = $filters['search_query']; // For exact ID match
+        $params[] = $search_term; // For title
+        $params[] = $search_term; // For student name
+        $params[] = $search_term; // For room number
+        $types .= "ssss";
+    }
+
+    // --- Specific Filters ---
+    if (!empty($filters['status'])) {
+        $sql .= " AND c.complaint_status = ?";
+        $params[] = $filters['status'];
+        $types .= "s";
+    }
+    if (!empty($filters['dorm_id'])) {
+        $sql .= " AND c.dormitory_id = ?";
+        $params[] = $filters['dorm_id'];
+        $types .= "i";
+    }
+    if (!empty($filters['cat_id'])) {
+        $sql .= " AND c.category_id = ?";
+        $params[] = $filters['cat_id'];
+        $types .= "i";
+    }
+
+    // Default sorting
+    $sql .= " ORDER BY c.created_at DESC";
+
+    $stmt = mysqli_prepare($con, $sql);
+    if ($stmt) {
+        if (!empty($params)) {
+            mysqli_stmt_bind_param($stmt, $types, ...$params);
+        }
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        mysqli_stmt_close($stmt);
+        return $result;
+    } else {
+        error_log("Error preparing getFilteredComplaints statement: " . mysqli_error($con));
         return false;
     }
-    return $result;
 }
 
 /**
  * Gets complaint data for PDF report generation.
- * Reuses getComplaintByID.
  * @param int $complaint_id
  * @return mysqli_result|false The result set on success, false on failure.
  */
 function getComplaintReportData($complaint_id)
 {
+    // Reuses the most detailed query
     return getComplaintByID($complaint_id);
 }
 
@@ -238,8 +332,7 @@ function getComplaintReportData($complaint_id)
 // ===================================
 
 /**
- * Gets all non-deleted staff members (excluding the root 'admin' user).
- * Includes department name via JOIN.
+ * Gets all non-deleted staff members (excluding root 'admin').
  * @return mysqli_result|false The result set on success, false on failure.
  */
 function getAllStaff()
@@ -260,7 +353,6 @@ function getAllStaff()
 
 /**
  * Gets a specific staff member by their ID.
- * Includes department name via JOIN.
  * @param int $staff_id
  * @return mysqli_result|false The result set on success, false on failure.
  */
@@ -286,7 +378,6 @@ function getStaffById($staff_id)
 
 /**
  * Gets a specific staff member by their email.
- * Includes department name via JOIN.
  * @param string $email
  * @return mysqli_result|false The result set on success, false on failure.
  */
@@ -313,14 +404,13 @@ function getStaffByEmail($email)
 /**
  * Checks if an email exists in either the staff or student table.
  * @param string $email
- * @return int Total count (0, 1, or 2), or -1 on error.
+ * @return int Total count (0 or 1), or -1 on error.
  */
 function checkStaffOrStudentByEmail($email)
 {
     include "connection.php";
     $total_count = 0;
 
-    // Check staff
     $staff_sql = "SELECT staff_id FROM staff WHERE email = ? AND is_deleted = 0";
     $staff_stmt = mysqli_prepare($con, $staff_sql);
     if ($staff_stmt) {
@@ -334,7 +424,6 @@ function checkStaffOrStudentByEmail($email)
         return -1;
     }
 
-    // Check student
     $student_sql = "SELECT student_id FROM student WHERE email = ? AND is_deleted = 0";
     $student_stmt = mysqli_prepare($con, $student_sql);
     if ($student_stmt) {
@@ -347,7 +436,6 @@ function checkStaffOrStudentByEmail($email)
         error_log("Error preparing student email check: " . mysqli_error($con));
         return -1;
     }
-
     return $total_count;
 }
 
@@ -358,7 +446,7 @@ function checkStaffOrStudentByEmail($email)
 
 /**
  * Gets a specific student by their ID.
- * @param int $student_id
+ * @param string $student_id (VARCHAR)
  * @return mysqli_result|false The result set on success, false on failure.
  */
 function getStudentById($student_id)
@@ -367,7 +455,7 @@ function getStudentById($student_id)
     $sql = "SELECT * FROM student WHERE is_deleted = 0 AND student_id = ?";
     $stmt = mysqli_prepare($con, $sql);
     if ($stmt) {
-        mysqli_stmt_bind_param($stmt, "i", $student_id);
+        mysqli_stmt_bind_param($stmt, "s", $student_id); // 's' for VARCHAR student_id
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
         mysqli_stmt_close($stmt);
@@ -408,7 +496,7 @@ function getAllStudentDataArray()
         return $columns;
     } else {
         error_log("Error fetching student data array: " . mysqli_error($con));
-        return []; // Return empty array on error
+        return [];
     }
 }
 
@@ -418,21 +506,19 @@ function getAllStudentDataArray()
 // ===================================
 
 /**
- * Checks student's current password for password change validation.
- * (Assumes plain text passwords as in original code).
+ * Checks student's current password. Echos 1 (match) or 0 (no match).
  * @param array $data ['student_id', 'password']
- * @return void (echos 1 or 0)
  */
 function checkStudentPassword($data)
 {
     include "connection.php";
-    $student_id = $data["student_id"];
+    $student_id = $data["student_id"]; // This is now VARCHAR
     $password = $data["password"];
 
     $sql = "SELECT password FROM student WHERE is_deleted = 0 AND student_id = ?";
     $stmt = mysqli_prepare($con, $sql);
     if ($stmt) {
-        mysqli_stmt_bind_param($stmt, "i", $student_id);
+        mysqli_stmt_bind_param($stmt, "s", $student_id); // 's' for VARCHAR
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
         $row = mysqli_fetch_assoc($result);
@@ -441,7 +527,7 @@ function checkStudentPassword($data)
         if ($row && $password === $row['password']) {
             echo 1; // Match
         } else {
-            echo 0; // No match or student not found
+            echo 0; // No match
         }
     } else {
         error_log("Error preparing checkStudentPassword statement: " . mysqli_error($con));
@@ -450,21 +536,19 @@ function checkStudentPassword($data)
 }
 
 /**
- * Checks if the provided email belongs to the specified student ID.
- * Used for email change validation.
+ * Checks if the provided email belongs to the specified student ID. Echos 1 or 0.
  * @param array $data ['student_id', 'email']
- * @return void (echos 1 or 0)
  */
 function checkCurrentStudentEmail($data)
 {
     include "connection.php";
-    $student_id = $data["student_id"];
+    $student_id = $data["student_id"]; // VARCHAR
     $email = $data["email"];
 
     $sql = "SELECT student_id FROM student WHERE is_deleted = 0 AND email = ? AND student_id = ?";
     $stmt = mysqli_prepare($con, $sql);
     if ($stmt) {
-        mysqli_stmt_bind_param($stmt, "si", $email, $student_id);
+        mysqli_stmt_bind_param($stmt, "ss", $email, $student_id); // 's' for VARCHAR student_id
         mysqli_stmt_execute($stmt);
         mysqli_stmt_store_result($stmt);
         $count = mysqli_stmt_num_rows($stmt);
@@ -477,11 +561,8 @@ function checkCurrentStudentEmail($data)
 }
 
 /**
- * Handles login for both staff/admin and students.
- * Sets session variables upon successful login.
- * (Assumes plain text passwords).
+ * Handles login for both staff/admin and students. Echos 'admin', 'customer', or ''.
  * @param array $data ['email', 'password']
- * @return void (echos 'admin', 'customer', or '')
  */
 function getLogin($data)
 {
@@ -502,8 +583,8 @@ function getLogin($data)
 
         if ($staffRow && $password === $staffRow['password']) {
             $_SESSION["staff_id"] = $staffRow["staff_id"];
-            $_SESSION["user_role"] = $staffRow["staff_role"]; // 'admin' or 'staff'
-            $_SESSION["admin_email"] = $staffRow["email"]; // Store email for password change
+            $_SESSION["user_role"] = $staffRow["staff_role"];
+            $_SESSION["admin_email"] = $staffRow["email"];
             $value = "admin";
         }
     } else {
@@ -522,22 +603,19 @@ function getLogin($data)
             mysqli_stmt_close($studentStmt);
 
             if ($studentRow && $password === $studentRow['password']) {
-                $_SESSION["student_id"] = $studentRow["student_id"];
+                $_SESSION["student_id"] = $studentRow["student_id"]; // Now stores the VARCHAR student_id
                 $value = "customer";
             }
         } else {
             error_log("Error preparing student login statement: " . mysqli_error($con));
         }
     }
-
     echo $value;
 }
 
 /**
- * Checks staff's current password by email.
- * (Assumes plain text passwords).
+ * Checks staff's current password by email. Echos 1 or 0.
  * @param array $data ['email', 'password']
- * @return void (echos 1 or 0)
  */
 function checkStaffPasswordByEmail($data)
 {
@@ -561,17 +639,14 @@ function checkStaffPasswordByEmail($data)
 }
 
 /**
- * Checks if an email exists in EITHER student or staff table.
- * Used for email change validation.
+ * Checks if an email exists in EITHER student or staff table. Echos JSON.
  * @param array $data ['email_to_check']
- * @return void (echos JSON {"exists": true/false})
  */
 function checkEmailExistsAny($data)
 {
     include 'connection.php';
     $email = $data['email_to_check'];
-    $count = checkStaffOrStudentByEmail($email); // Reuse the combined check
-
+    $count = checkStaffOrStudentByEmail($email);
     $response = array('exists' => $count > 0);
     echo json_encode($response);
     exit;
@@ -583,13 +658,18 @@ function checkEmailExistsAny($data)
 // ===================================
 
 /**
- * Gets all feedback entries.
+ * Gets all feedback entries, joining student info.
  * @return mysqli_result|false The result set on success, false on failure.
  */
 function getAllFeedback()
 {
     include "connection.php";
-    $sql = "SELECT * FROM feedback ORDER BY date_updated DESC";
+    // SQL updated to JOIN student table and check is_deleted
+    $sql = "SELECT f.*, s.name, s.email 
+            FROM feedback f
+            LEFT JOIN student s ON f.student_id = s.student_id
+            WHERE f.is_deleted = 0
+            ORDER BY f.date_updated DESC";
     $result = mysqli_query($con, $sql);
     if (!$result) {
         error_log("Error fetching feedback: " . mysqli_error($con));
@@ -604,9 +684,8 @@ function getAllFeedback()
 // ===================================
 
 /**
- * Counts non-deleted records in a given table.
+ * Counts non-deleted records in a given table. Echos count.
  * @param string $table The name of the table.
- * @return void (echos count)
  */
 function dataCount($table)
 {
@@ -630,11 +709,9 @@ function dataCount($table)
 }
 
 /**
- * Counts non-deleted records with a specific WHERE clause.
- * WARNING: $where is not sanitized. Construct it safely.
+ * Counts non-deleted records with a specific WHERE clause. Echos count.
  * @param string $table The name of the table.
- * @param string $where The SQL WHERE clause (e.g., "complaint_status = 1").
- * @return void (echos count)
+ * @param string $where The SQL WHERE clause.
  */
 function dataCountWhere($table, $where)
 {

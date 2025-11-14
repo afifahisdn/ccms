@@ -3,13 +3,13 @@
 <?php
 /*
 * change_email.php
-* Page for students to change their email address.
-* Includes header and auth check.
+*
+* Form for logged-in students to change their email.
 */
 
 // Includes session_start, db connection, settings fetch ($res)
 include "pages/header.php";
-// Includes student session check and fetches $student_data
+// Includes student session check and fetches $student_data and $student_id (VARCHAR)
 include "auth.php";
 ?>
 
@@ -17,9 +17,35 @@ include "auth.php";
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Change Email - CCMS</title>
-    <!-- Head content (CSS) is included via pages/header.php -->
+    <!-- CSS is included from pages/header.php -->
     <!-- Font Awesome for icons (included via pages/assets.php) -->
-    <!-- iziToast CSS (included via pages/assets.php) -->
+
+    <!-- Inline Styles for Profile Info -->
+    <style>
+        .profile-info-item {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        .profile-info-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .profile-info-item strong {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.9em;
+            opacity: 0.8;
+            color: #17a2b8; /* text-info */
+        }
+        .profile-info-item p {
+            margin-bottom: 0;
+            color: #fff; /* text-white */
+        }
+        .bg-dark {
+            background-color: #343a40 !important;
+        }
+    </style>
 </head>
 
 <body data-spy="scroll" data-target=".site-navbar-target" data-offset="200">
@@ -58,7 +84,7 @@ include "auth.php";
             <div class="row align-items-center">
                 <div class="col-6 col-xl-2 site-logo">
                     <a href="index.php" class="text-white h5 mb-0">
-                        <img src="server/uploads/settings/<?php echo htmlspecialchars($res['header_image'] ?? 'logo.png'); ?>" alt="CCMS Logo" style="max-width: 130px;">
+                        <img src="server/uploads/settings/logo.png" alt="CCMS Logo" style="max-width: 70px; padding: 8px;">
                     </a>
                 </div>
                 <div class="col-6 col-md-10 d-xl-none text-right">
@@ -105,7 +131,7 @@ include "auth.php";
                                     </div>
                                     <div class="profile-info-item">
                                         <strong class="text-info">Student ID:</strong>
-                                        <p><?php echo htmlspecialchars($student_data["student_id_number"]); ?></p>
+                                        <p><?php echo htmlspecialchars($student_data["student_id"]); ?></p>
                                     </div>
                                     <div class="profile-info-item">
                                         <strong class="text-info">Current Email:</strong>
@@ -125,7 +151,7 @@ include "auth.php";
                             <div class="col-lg-7">
                                 <div class="p-4 bg-white rounded shadow-sm">
                                     <h4 class="text-primary mb-4">Update Email Address</h4>
-                                    <form method="POST" class="needs-validation" novalidate>
+                                    <form method="POST" class="needs-validation" novalidate onsubmit="return false;">
                                         <div class="mb-3">
                                             <label for="current_email" class="form-label">Verify Current Email Address <span class="text-danger">*</span></label>
                                             <input type="email" class="form-control" name="current_email" id="current_email" placeholder="Enter your current email" required>
@@ -133,17 +159,17 @@ include "auth.php";
                                         </div>
 
                                         <div class="mb-3">
-                                            <label for="new_email" class="form-label">New Email Address <span class="text-danger">*</span></label>
-                                            <input type="email" class="form-control" name="new_email" id="new_email" placeholder="Enter your new email" required>
+                                            <label for="new_email" class="form-label">New Email Address (@college.edu) <span class="text-danger">*</span></label>
+                                            <input type="email" class="form-control" name="new_email" id="new_email" placeholder="Enter your new @college.edu email" required>
                                             <div class="invalid-feedback">Please enter a valid new email address.</div>
                                         </div>
 
-                                        <!-- Hidden student_id from auth.php -->
+                                        <!-- Hidden student_id (VARCHAR PK) -->
                                         <input type="hidden" name="student_id" value="<?php echo htmlspecialchars($student_id); ?>" id="student_id">
 
                                         <div class="mt-4 d-flex justify-content-between">
                                             <a href="profile.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Profile</a>
-                                            <!-- Call changeEmail from homejs.js (which was renamed to changeStudentEmail) -->
+                                            <!-- Call changeStudentEmail from homejs.js -->
                                             <button type="button" onclick="changeStudentEmail(this.form)" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
                                         </div>
                                     </form>
@@ -159,7 +185,7 @@ include "auth.php";
 
     <?php include "pages/footer.php"; ?>
 
-    <!-- JS Includes (jQuery, iziToast, SweetAlert are in assets.php) -->
+    <!-- JS Includes (loaded via pages/header.php -> assets.php) -->
     <script src="js/jquery-migrate-3.0.1.min.js"></script>
     <script src="js/jquery-ui.js"></script>
     <script src="js/jquery.easing.1.3.js"></script>
@@ -173,43 +199,36 @@ include "auth.php";
     <script src="js/aos.js"></script>
 
     <!-- Custom JS files (loaded via assets.php) -->
-    <!-- <script src="admin/assets/plugin/iziToast-master/dist/js/iziToast.min.js"></script> -->
     <!-- <script src="admin/assets/js/include/alerts.js"></script> -->
     <!-- <script src="admin/assets/js/include/validation.js"></script> -->
-    <!-- <script src="admin/assets/js/include/homejs.js"></script> <!-- Contains changeStudentEmail -->
-    
+    <!-- <script src="admin/assets/js/include/homejs.js"></script> -->
+
     <script src="js/main.js"></script> <!-- General template JS -->
 
-    <!-- Inline Styles -->
-    <style>
-        .profile-info-item {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 0.75rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .profile-info-item:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-        }
-
-        .profile-info-item strong {
-            display: block;
-            margin-bottom: 0.25rem;
-            font-size: 0.9em;
-            opacity: 0.8;
-        }
-
-        .profile-info-item p {
-            margin-bottom: 0;
-            word-wrap: break-word; /* Ensure long emails wrap */
-        }
-
-        .bg-dark {
-            background-color: #343a40 !important;
-        }
-    </style>
+    <!-- Simple JS for form validation -->
+    <script>
+        (function() {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms)
+                .forEach(function(form) {
+                    var saveButton = form.querySelector('button[onclick^="changeStudentEmail"]');
+                    if (saveButton) {
+                        saveButton.addEventListener('click', function(event) {
+                            if (!form.checkValidity()) {
+                                event.preventDefault()
+                                event.stopPropagation()
+                                if (typeof errorMessage === 'function') {
+                                    errorMessage('Please fill out all fields correctly.');
+                                }
+                            }
+                            form.classList.add('was-validated')
+                        }, false);
+                    }
+                })
+        })()
+    </script>
 
 </body>
-</html>
 
+</html>

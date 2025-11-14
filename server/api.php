@@ -11,10 +11,6 @@ if (session_id() == "") {
     session_start();
 }
 
-// Set error reporting for debugging (remove or adjust for production)
-// error_reporting(E_ALL);
-// ini_set('display_errors', 1);
-
 // Include necessary function files
 include_once "inc/connection.php"; // Establishes $con
 include_once "inc/get.php";
@@ -69,7 +65,7 @@ try {
             echo json_encode($students ?: []); // Return empty array on failure
             break;
         case "updateStudentProfile":
-            // Expects JSON input from homejs.js profileUpdate function
+            // Expects JSON input from homejs.js updateStudentProfile function
             // updateStudentProfile echoes JSON status {status: 'success'/'error'}
             updateStudentProfile(file_get_contents("php://input"));
             break;
@@ -104,10 +100,25 @@ try {
                 echo json_encode(["error" => "Failed to add complaint."]);
             }
             break;
+        case "getFilteredComplaints":
+            // Admin filter/sort request
+            $filters = $_POST; // Get filters from POST
+            $complaints = getFilteredComplaints($filters);
+            echo json_encode($complaints ?: []);
+            break;
         case "updateComplaintStatus":
             // updateComplaintStatus echoes 'success' or 'error'
             header('Content-Type: text/plain');
             echo updateComplaintStatus($_POST);
+            break;
+
+            // --- Category Management ---
+        case "addCategory":
+            $result = addCategory($_POST);
+            if ($result === true) {
+                echo json_encode(["success" => true]);
+            }
+            // Errors/exists messages are handled inside addCategory()
             break;
 
             // --- Department Management ---
@@ -116,7 +127,6 @@ try {
             if ($result === true) {
                 echo json_encode(["success" => true]);
             }
-            // Errors/exists messages are handled inside addDepartment()
             break;
 
             // --- Dormitory Management ---
@@ -125,7 +135,6 @@ try {
             if ($result === true) {
                 echo json_encode(["success" => true]);
             }
-            // Errors/exists messages are handled inside addDormitory()
             break;
 
             // --- Feedback Management ---
@@ -166,7 +175,7 @@ try {
                 $original_filename = basename($fileInfo["name"]);
                 $safe_filename = preg_replace("/[^A-Za-z0-9\._-]/", '', $original_filename);
                 $file_extension = strtolower(pathinfo($safe_filename, PATHINFO_EXTENSION));
-                $final_filename = $fieldName . '.' . $file_extension; // Overwrite existing (e.g., header_image.png)
+                $final_filename = $fieldName . '.' . $file_extension;
 
                 $target_file_absolute = $target_dir_absolute . $final_filename;
                 $target_file_relative = $target_dir_relative . $final_filename;

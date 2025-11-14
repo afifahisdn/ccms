@@ -7,9 +7,9 @@
 *
 * Form for Admins to manually create a new student account.
 */
-include "pages/header.php";
-include "admin.php";
-include "checkAdmin.php"; // Ensure only admin can add students
+include "pages/header.php"; // Includes assets, connection, get
+include "admin.php";      // Includes session check, sets $logged_in_user_role
+include "checkAdmin.php"; // Ensure only 'admin' role can access
 ?>
 
 <body>
@@ -51,34 +51,30 @@ include "checkAdmin.php"; // Ensure only admin can add students
                                 <span>Feedback</span>
                             </a>
                         </li>
-                        <?php if (
-                            isset($_SESSION["user_role"]) && // Check user_role
-                            $_SESSION["user_role"] == "admin"
-                        ) : ?>
-                            <li class="sidebar-item">
-                                <a href="department.php" class='sidebar-link'>
-                                    <i class="bi bi-building"></i>
-                                    <span>Departments</span>
-                                </a>
-                            </li>
-                        <?php endif; ?>
+                        <li class="sidebar-item">
+                            <a href="department.php" class='sidebar-link'>
+                                <i class="bi bi-building"></i>
+                                <span>Departments</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="categories.php" class='sidebar-link'>
+                                <i class="bi bi-tags-fill"></i>
+                                <span>Categories</span>
+                            </a>
+                        </li>
                         <li class="sidebar-item">
                             <a href="staff.php" class='sidebar-link'>
                                 <i class="bi bi-person-badge-fill"></i>
                                 <span>Staff</span>
                             </a>
                         </li>
-                        <?php if (
-                            isset($_SESSION["user_role"]) && // Check user_role
-                            $_SESSION["user_role"] == "admin"
-                        ) : ?>
-                            <li class="sidebar-item">
-                                <a href="dormitory.php" class='sidebar-link'>
-                                    <i class="bi bi-house-door-fill"></i>
-                                    <span>Dormitories</span>
-                                </a>
-                            </li>
-                        <?php endif; ?>
+                        <li class="sidebar-item">
+                            <a href="dormitory.php" class='sidebar-link'>
+                                <i class="bi bi-house-door-fill"></i>
+                                <span>Dormitories</span>
+                            </a>
+                        </li>
                         <li class="sidebar-item">
                             <a href="settings.php" class='sidebar-link'>
                                 <i class="bi bi-gear-fill"></i>
@@ -120,7 +116,7 @@ include "checkAdmin.php"; // Ensure only admin can add students
                         <div class="card card-register">
                             <div class="card-body">
                                 <!-- This form ID is used by add.js -> addStudentAdmin -->
-                                <form action="" method="post" id="basicform" data-parsley-validate="">
+                                <form method="post" id="basicform" data-parsley-validate="" onsubmit="return false;">
                                     <div class="form-group">
                                         <label for="inputName">Name:</label>
                                         <input id="inputName" type="text" name="name" data-parsley-trigger="change" required="" placeholder="Enter Full Name" autocomplete="off" class="form-control">
@@ -128,19 +124,21 @@ include "checkAdmin.php"; // Ensure only admin can add students
 
                                     <div class="form-group">
                                         <label for="inputEmail">Email Address:</label>
-                                        <input id="inputEmail" type="email" name="email" data-parsley-trigger="change" required="" placeholder="Enter email" autocomplete="off" class="form-control">
+                                        <input id="inputEmail" type="email" name="email" data-parsley-trigger="change" required="" placeholder="e.g., username@college.edu" autocomplete="off" class="form-control">
                                     </div>
 
+                                    <!-- Added Student ID Number Field -->
                                     <div class="form-group">
                                         <label for="student_id_number">Student ID Number:</label>
-                                        <input id="student_id_number" type="text" name="student_id_number" data-parsley-trigger="change" required="" placeholder="e.g., STU2024001" autocomplete="off" class="form-control">
+                                        <input id="student_id_number" type="text" name="student_id_number" data-parsley-trigger="change" required="" placeholder="e.g., STU1234567" autocomplete="off" class="form-control">
                                     </div>
 
                                     <div class="form-group">
                                         <label for="inputPhone">Phone Number:</label>
-                                        <input id="inputPhone" type="text" name="phone" data-parsley-trigger="change" required="" placeholder="Enter Phone Number" autocomplete="off" class="form-control">
+                                        <input id="inputPhone" type="text" name="phone" data-parsley-trigger="change" required="" placeholder="e.g., 012-3456789" autocomplete="off" class="form-control">
                                     </div>
 
+                                    <!-- Added Room Number Field -->
                                     <div class="form-group">
                                         <label for="room_number">Room Number:</label>
                                         <input id="room_number" type="text" name="room_number" data-parsley-trigger="change" required="" placeholder="e.g., A-101" autocomplete="off" class="form-control">
@@ -155,13 +153,13 @@ include "checkAdmin.php"; // Ensure only admin can add students
                                         <label for="inputGender">Gender:</label>
                                         <select class="form-select" name="gender" id="gender" aria-label="Default select example">
                                             <option value="1" selected>Male</option>
-                                            <option value="2">Female</option>
+                                            <option value="2">Female</option> <!-- Corrected value -->
                                         </select>
                                     </div>
 
                                     <div class='form-group'>
                                         <label for='inputPassword'>Password:</label>
-                                        <input id='inputPassword' type='password' name='password' placeholder='Password' required='' class='form-control'>
+                                        <input id='inputPassword' type='password' name='password' placeholder='Password (min. 6 characters)' required='' class='form-control'>
                                     </div>
 
                                     <div class='form-group'>
@@ -185,7 +183,7 @@ include "checkAdmin.php"; // Ensure only admin can add students
     <!-- JS Includes -->
     <script src="assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
     <script src="assets/js/bootstrap.bundle.min.js"></script>
-    <!-- You may need to include parsley.js if you are using its validation attributes -->
+    <!-- Parsley validation (if you want to use data-parsley-validate) -->
     <!-- <script src="assets/vendors/parsleyjs/parsley.min.js"></script> -->
     <script src="assets/js/main.js"></script>
 </body>

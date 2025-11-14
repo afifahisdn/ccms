@@ -8,9 +8,16 @@
 * Main dashboard for the Admin/Staff panel.
 * Displays overview counts.
 */
-include "pages/header.php"; // Includes assets
-include "admin.php";      // Includes session check, gets $logged_in_user_role
-// get.php is included in header.php, so dataCount functions are available
+
+// Includes assets, connection, and all get/add/update/delete functions
+include "pages/header.php";
+// Includes session check, sets $logged_in_user_role, $logged_in_staff_id, etc.
+include "admin.php";
+
+// --- POOR MAN'S CRON JOB ---
+// Run the auto-close logic every time an admin/staff visits the dashboard.
+autoCloseComplaints();
+// --- END CRON JOB ---
 ?>
 
 <body>
@@ -33,6 +40,7 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role
                 </div>
                 <div class="sidebar-menu">
                     <ul class="menu">
+                        <!-- Set Dashboard as active -->
                         <li class="sidebar-item active ">
                             <a href="index.php" class='sidebar-link'>
                                 <i class="bi bi-grid-fill"></i>
@@ -70,6 +78,13 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role
                                 <a href="department.php" class='sidebar-link'>
                                     <i class="bi bi-building"></i>
                                     <span>Departments</span>
+                                </a>
+                            </li>
+                            <!-- NEW CATEGORIES LINK -->
+                            <li class="sidebar-item">
+                                <a href="categories.php" class='sidebar-link'>
+                                    <i class="bi bi-tags-fill"></i>
+                                    <span>Categories</span>
                                 </a>
                             </li>
                         <?php endif; ?>
@@ -223,8 +238,9 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role
                                                 </div>
                                             </div>
                                             <div class="col-md-8">
-                                                <h6 class="text-muted font-semibold">Open Complaints</h6>
-                                                <h6 class="font-extrabold mb-0"><?php dataCountWhere('complaint', ' complaint_status = 1 '); ?></h6>
+                                                <h6 class="text-muted font-semibold">Open</h6>
+                                                <!-- UPDATED: Check for 'Open' string -->
+                                                <h6 class="font-extrabold mb-0"><?php dataCountWhere('complaint', " complaint_status = 'Open' "); ?></h6>
                                             </div>
                                         </div>
                                     </div>
@@ -242,7 +258,8 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role
                                             </div>
                                             <div class="col-md-8">
                                                 <h6 class="text-muted font-semibold">In Progress</h6>
-                                                <h6 class="font-extrabold mb-0"><?php dataCountWhere('complaint', ' complaint_status = 2 '); ?></h6>
+                                                <!-- UPDATED: Check for 'In Progress' string -->
+                                                <h6 class="font-extrabold mb-0"><?php dataCountWhere('complaint', " complaint_status = 'In Progress' "); ?></h6>
                                             </div>
                                         </div>
                                     </div>
@@ -260,7 +277,8 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role
                                             </div>
                                             <div class="col-md-8">
                                                 <h6 class="text-muted font-semibold">Resolved</h6>
-                                                <h6 class="font-extrabold mb-0"><?php dataCountWhere('complaint', ' complaint_status = 3 '); ?></h6>
+                                                <!-- UPDATED: Check for 'Resolved' string -->
+                                                <h6 class="font-extrabold mb-0"><?php dataCountWhere('complaint', " complaint_status = 'Resolved' "); ?></h6>
                                             </div>
                                         </div>
                                     </div>
@@ -277,8 +295,9 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role
                                                 </div>
                                             </div>
                                             <div class="col-md-8">
-                                                <h6 class="text-muted font-semibold">Closed Complaints</h6>
-                                                <h6 class="font-extrabold mb-0"><?php dataCountWhere('complaint', ' complaint_status = 4'); ?></h6>
+                                                <h6 class="text-muted font-semibold">Closed</h6>
+                                                <!-- UPDATED: Check for 'Closed' string -->
+                                                <h6 class="font-extrabold mb-0"><?php dataCountWhere('complaint', " complaint_status = 'Closed'"); ?></h6>
                                             </div>
                                         </div>
                                     </div>
@@ -299,4 +318,5 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role
     <!-- <script src="assets/js/pages/dashboard.js"></script> --> <!-- Removed default dashboard JS -->
     <script src="assets/js/main.js"></script>
 </body>
+
 </html>

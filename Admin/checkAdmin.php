@@ -12,7 +12,8 @@ if (session_id() == '') {
 }
 
 // Check the 'user_role' set during login
-if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] != 'admin') {
+// This variable ($logged_in_user_role) is defined in admin/admin.php
+if (!isset($logged_in_user_role) || $logged_in_user_role != 'admin') {
     // If not an admin, redirect them to the admin dashboard (which is safe for staff)
     header("Location: index.php");
     exit(); // Always exit after a header redirect

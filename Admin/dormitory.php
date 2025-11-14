@@ -7,7 +7,7 @@
 */
 
 include "pages/header.php"; // Includes assets, connection, get
-include "admin.php";      // Includes session check, gets $logged_in_user_role
+include "admin.php";      // Includes session check, sets $logged_in_user_role
 include "checkAdmin.php"; // Ensures only 'admin' role can access
 ?>
 
@@ -55,6 +55,12 @@ include "checkAdmin.php"; // Ensures only 'admin' role can access
                             <a href="department.php" class='sidebar-link'>
                                 <i class="bi bi-building"></i>
                                 <span>Departments</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="categories.php" class='sidebar-link'>
+                                <i class="bi bi-tags-fill"></i>
+                                <span>Categories</span>
                             </a>
                         </li>
                         <li class="sidebar-item">
@@ -171,11 +177,11 @@ include "checkAdmin.php"; // Ensures only 'admin' role can access
                     <div class="modal-body bg-white">
                         <div class="mb-3">
                             <label for="dormitory_name" class="form-label">Dormitory Name</label>
-                            <input type="text" class="form-control" name="dormitory_name" id="dormitory_name" placeholder="e.g., Dormitory A - North Wing" required>
+                            <input type="text" class="form-control" name="dormitory_name" id="dormitory_name_modal" placeholder="e.g., Dormitory A - North Wing" required>
                         </div>
                         <div class="mb-3">
                             <label for="dormitory_code" class="form-label">Dormitory Code</label>
-                            <input type="text" class="form-control" name="dormitory_code" id="dormitory_code" placeholder="e.g., DORM-A" required>
+                            <input type="text" class="form-control" name="dormitory_code" id="dormitory_code_modal" placeholder="e.g., DORM-A" required>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -193,7 +199,6 @@ include "checkAdmin.php"; // Ensures only 'admin' role can access
     <script src="assets/js/bootstrap.bundle.min.js"></script>
 
     <!-- Simple Datatables (included via assets.php) -->
-    <!-- <script src="assets/vendors/simple-datatables/simple-datatables.js"></script> -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (document.getElementById('datatablesSimple')) {

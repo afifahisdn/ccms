@@ -27,20 +27,21 @@ function phonenumber(inputtxt, showError = true) {
 }
 
 /**
- * Validates a standard email format.
+ * Validates a standard email format, MUST end in @college.edu.
  * Shows an error message if invalid.
  * @param {string} inputtxt - The email string to validate.
  * @param {boolean} [showError=true] - Whether to show the error message.
  * @returns {boolean} - True if valid, false otherwise.
  */
 function emailvalidation(inputtxt, showError = true) {
-    var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    // UPDATED: Regex now requires @college.edu at the end
+    var mailformat = /^\w+([\.-]?\w+)*@college\.edu$/;
     if (inputtxt && inputtxt.match(mailformat)) {
         return true;
     } else {
         if (showError) {
             // Use the non-reloading error message
-            errorMessage("Email format is not valid. Please enter a valid email address.");
+            errorMessage("Email is not valid. It must be a valid '@college.edu' address.");
         }
         return false;
     }
@@ -48,19 +49,19 @@ function emailvalidation(inputtxt, showError = true) {
 
 /**
  * Validates a Student ID Number format.
- * Example: STU2024001 (STU + 7 digits). Adjust regex as needed.
+ * Example: STU2024001 (STU + 7 digits).
  * @param {string} studentId - The student ID string to validate.
  * @param {boolean} [showError=true] - Whether to show the error message.
  * @returns {boolean} - True if valid, false otherwise.
  */
 function validateStudentIDNumber(studentId, showError = true) {
     // This regex requires 'STU' (case-insensitive) followed by exactly 7 digits.
+    // Adjust as needed.
     var format = /^STU[0-9]{7}$/i;
     if (studentId && studentId.match(format)) {
         return true;
     } else {
         if (showError) {
-            // Use the non-reloading error message
             errorMessage("Invalid Student ID format. Expected format like 'STU1234567'.");
         }
         return false;

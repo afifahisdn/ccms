@@ -3,27 +3,66 @@
 * add.php
 *
 * Contains all functions for ADDING data to the CCMS database.
-* Uses prepared statements for security.
 */
 
 include_once "connection.php";
 include_once "get.php"; // Include get.php for check functions
 
 /**
+ * Adds a new complaint category to the database.
+ *
+ * @param array $data Asssociative array from form post.
+ * @return bool True on success, false on failure (or echoes JSON error).
+ */
+function addCategory($data)
+{
+    include "connection.php";
+
+    $category_name = mysqli_real_escape_string($con, $data["category_name"]);
+
+    $count = checkCategoryByName($category_name);
+
+    if ($count == 0) {
+        $sql = "INSERT INTO categories(category_name, is_deleted) VALUES(?, 0)";
+        $stmt = mysqli_prepare($con, $sql);
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, "s", $category_name);
+            if (mysqli_stmt_execute($stmt)) {
+                mysqli_stmt_close($stmt);
+                return true;
+            } else {
+                error_log("Error adding category: " . mysqli_stmt_error($stmt));
+                mysqli_stmt_close($stmt);
+                echo json_encode(["error" => "Database error adding category."]);
+                return false;
+            }
+        } else {
+            error_log("Error preparing addCategory statement: " . mysqli_error($con));
+            echo json_encode(["error" => "Database error."]);
+            return false;
+        }
+    } else if ($count > 0) {
+        echo json_encode(["exists" => true, "message" => "This Category Name Already Exists."]);
+        return false;
+    } else {
+        echo json_encode(["error" => "Error checking category name."]);
+        return false;
+    }
+}
+
+/**
  * Adds a new department to the database.
- * Checks if the department name already exists.
  *
  * @param array $data Asssociative array from form post.
  * @return bool True on success, false on failure (or echoes JSON error).
  */
 function addDepartment($data)
 {
-    include "connection.php"; // Establishes $con
+    include "connection.php";
 
     $department_name = mysqli_real_escape_string($con, $data["department_name"]);
     $department_type = mysqli_real_escape_string($con, $data["department_type"]);
 
-    // Validate type
     $valid_types = ['maintenance', 'it', 'cleaning', 'security', 'administration'];
     if (!in_array($department_type, $valid_types)) {
         echo json_encode(["error" => "Invalid department type"]);
@@ -62,7 +101,6 @@ function addDepartment($data)
 
 /**
  * Adds a new dormitory to the database.
- * Checks if the dormitory name or code already exists.
  *
  * @param array $data Asssociative array from form post.
  * @return bool True on success, false on failure (or echoes JSON error).
@@ -115,21 +153,21 @@ function addComplaint($data, $file)
 {
     include "connection.php";
 
-    $student_id = mysqli_real_escape_string($con, $data["student_id"]);
+    $student_id = mysqli_real_escape_string($con, $data["student_id"]); // This is now a VARCHAR
     $dormitory_id = mysqli_real_escape_string($con, $data["dormitory_id"]);
     $room_number = mysqli_real_escape_string($con, $data["room_number"]);
     $complaint_title = mysqli_real_escape_string($con, $data["complaint_title"]);
-    $complaint_category = mysqli_real_escape_string($con, $data["complaint_category"]);
+    $category_id = mysqli_real_escape_string($con, $data["category_id"]); // This is now an INT ID
     $urgency_level = mysqli_real_escape_string($con, $data["urgency_level"]);
     $complaint_description = mysqli_real_escape_string($con, $data["complaint_description"]);
 
-    $photo_path_db = NULL; // Database path (relative)
+    $photo_path_db = NULL;
     $photo_upload_success = true;
 
+    // Handle file upload
     if (isset($file["photo"]) && $file["photo"]["error"] == UPLOAD_ERR_OK && $file["photo"]["size"] > 0) {
-        // Use __DIR__ for reliable absolute pathing
         $target_dir_absolute = __DIR__ . "/../uploads/complaints/";
-        $target_dir_relative = "server/uploads/complaints/"; // Path to store in DB
+        $target_dir_relative = "server/uploads/complaints/";
 
         if (!is_dir($target_dir_absolute)) {
             if (!mkdir($target_dir_absolute, 0777, true)) {
@@ -170,21 +208,25 @@ function addComplaint($data, $file)
     }
 
     if ($photo_upload_success) {
-        $sql = "INSERT INTO complaint(student_id, dormitory_id, room_number, complaint_title, complaint_description, photo, complaint_category, urgency_level, complaint_status, created_at, date_updated) 
-                VALUES(?, ?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())";
+        // --- UPDATED SQL ---
+        // `category_id` is now an INT
+        // `complaint_status` is now an ENUM (set to 'Open')
+        $sql = "INSERT INTO complaint(student_id, dormitory_id, category_id, room_number, complaint_title, complaint_description, photo, urgency_level, complaint_status, created_at, date_updated) 
+                VALUES(?, ?, ?, ?, ?, ?, ?, ?, 'Open', NOW(), NOW())";
 
         $stmt = mysqli_prepare($con, $sql);
         if ($stmt) {
+            // `student_id` (s), `dormitory_id` (i), `category_id` (i)
             mysqli_stmt_bind_param(
                 $stmt,
-                "iissssss",
+                "siisssss", // s=string, i=int
                 $student_id,
                 $dormitory_id,
+                $category_id, // <-- UPDATED
                 $room_number,
                 $complaint_title,
                 $complaint_description,
                 $photo_path_db,
-                $complaint_category,
                 $urgency_level
             );
 
@@ -206,23 +248,20 @@ function addComplaint($data, $file)
     }
 }
 
+
 /**
  * Adds a new complaint submitted via the Admin panel.
  * Reuses the addComplaint logic.
- *
- * @param array $data Asssociative array from $_POST.
- * @param array $file Asssociative array from $_FILES.
- * @return bool True on success, false on failure (or echoes JSON error).
  */
 function addComplaintAdmin($data, $file)
 {
-    // This function is identical to addComplaint, just called from a different place.
+    // This function is identical to addComplaint
     return addComplaint($data, $file);
 }
 
+
 /**
  * Adds a new staff member to the database.
- * Checks if the email already exists.
  *
  * @param array $data Asssociative array from form post.
  * @return bool True on success, false on failure (or echoes JSON error).
@@ -236,29 +275,24 @@ function addStaff($data)
     $phone = mysqli_real_escape_string($con, $data["phone"]);
     $nric = mysqli_real_escape_string($con, $data["nric"]);
     $address = mysqli_real_escape_string($con, $data["address"]);
-    $gender = mysqli_real_escape_string($con, $data["gender"]); // 1 or 2
-    $password = mysqli_real_escape_string($con, $data["password"]); // NOTE: Store passwords hashed
+    $gender = mysqli_real_escape_string($con, $data["gender"]);
+    $password = mysqli_real_escape_string($con, $data["password"]);
     $department_id = mysqli_real_escape_string($con, $data["department_id"]);
-    $staff_role = mysqli_real_escape_string($con, $data["staff_role"]); // 'admin' or 'staff'
+    $staff_role = mysqli_real_escape_string($con, $data["staff_role"]);
 
-    // Validate role
     if (!in_array($staff_role, ['admin', 'staff'])) {
         echo json_encode(["error" => "Invalid staff role specified"]);
         return false;
     }
-    // Validate gender
     if (!in_array($gender, ['1', '2'])) {
         echo json_encode(["error" => "Invalid gender specified"]);
         return false;
     }
 
-    $count = checkStaffOrStudentByEmail($email); // Use combined check function
+    $count = checkStaffOrStudentByEmail($email);
 
     if ($count == 0) {
-        // IMPORTANT: You should hash passwords, e.g.:
         // $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-        // Then store $hashed_password instead of $password
-        
         $sql = "INSERT INTO staff(name, email, phone, nric, address, gender, password, is_deleted, department_id, staff_role) 
                 VALUES(?, ?, ?, ?, ?, ?, ?, 0, ?, ?)";
 
@@ -266,7 +300,7 @@ function addStaff($data)
         if ($stmt) {
             mysqli_stmt_bind_param(
                 $stmt,
-                "sssssssis", // s = string, i = integer
+                "sssssssis",
                 $name,
                 $email,
                 $phone,
@@ -302,7 +336,7 @@ function addStaff($data)
 }
 
 /**
- * Adds feedback submitted via the contact form.
+ * Adds feedback from a logged-in student.
  *
  * @param array $data Asssociative array from form post.
  * @return bool True on success, false on failure (or echoes JSON error).
@@ -311,16 +345,15 @@ function addFeedback($data)
 {
     include "connection.php";
 
-    $name = mysqli_real_escape_string($con, $data["name"]);
-    $email = mysqli_real_escape_string($con, $data["email"]);
+    $student_id = mysqli_real_escape_string($con, $data["student_id"]); // VARCHAR
     $subject = mysqli_real_escape_string($con, $data["subject"]);
     $message = mysqli_real_escape_string($con, $data["message"]);
 
-    $sql = "INSERT INTO feedback(name, email, subject, message, date_updated) VALUES(?, ?, ?, ?, NOW())";
+    $sql = "INSERT INTO feedback(student_id, subject, message, date_updated, is_deleted) VALUES(?, ?, ?, NOW(), 0)";
 
     $stmt = mysqli_prepare($con, $sql);
     if ($stmt) {
-        mysqli_stmt_bind_param($stmt, "ssss", $name, $email, $subject, $message);
+        mysqli_stmt_bind_param($stmt, "sss", $student_id, $subject, $message); // 's' for VARCHAR student_id
         if (mysqli_stmt_execute($stmt)) {
             mysqli_stmt_close($stmt);
             return true;
@@ -339,7 +372,6 @@ function addFeedback($data)
 
 /**
  * Creates a new student account (registration).
- * Checks if email or student_id_number already exists.
  *
  * @param array $data Asssociative array from form post.
  * @return void Echos JSON response.
@@ -352,41 +384,38 @@ function createStudent($data)
     $email = mysqli_real_escape_string($con, $data['email']);
     $phone = mysqli_real_escape_string($con, $data['phone']);
     $address = mysqli_real_escape_string($con, $data['address']);
-    $gender = mysqli_real_escape_string($con, $data['gender']); // 1 or 2
-    $password = mysqli_real_escape_string($con, $data['password']); // NOTE: Store passwords hashed
-    $student_id_number = mysqli_real_escape_string($con, $data['student_id_number']);
+    $gender = mysqli_real_escape_string($con, $data['gender']);
+    $password = mysqli_real_escape_string($con, $data['password']);
+    $student_id = mysqli_real_escape_string($con, $data['student_id_number']); // Use student_id_number as the PK
     $room_number = mysqli_real_escape_string($con, $data['room_number']);
 
-    // Validate gender
     if (!in_array($gender, ['1', '2'])) {
         echo json_encode(["error" => true, "message" => "Invalid gender."]);
         return;
     }
 
-    // Check if email or student ID already exists
-    $checkSql = "SELECT email, student_id_number FROM student WHERE (email = ? OR student_id_number = ?) AND is_deleted = 0";
+    // Check if email or student ID (PK) already exists
+    $checkSql = "SELECT email, student_id FROM student WHERE (email = ? OR student_id = ?) AND is_deleted = 0";
     $checkStmt = mysqli_prepare($con, $checkSql);
-    mysqli_stmt_bind_param($checkStmt, "ss", $email, $student_id_number);
+    mysqli_stmt_bind_param($checkStmt, "ss", $email, $student_id);
     mysqli_stmt_execute($checkStmt);
     $checkResult = mysqli_stmt_get_result($checkStmt);
-    
+
     if (mysqli_num_rows($checkResult) > 0) {
         $existing = mysqli_fetch_assoc($checkResult);
         mysqli_stmt_close($checkStmt);
         if ($existing['email'] == $email) {
-             echo json_encode(["exists" => true, "message" => "Email already exists."]);
+            echo json_encode(["exists" => true, "message" => "Email already exists."]);
         } else {
-             echo json_encode(["exists" => true, "message" => "Student ID Number already exists."]);
+            echo json_encode(["exists" => true, "message" => "Student ID Number already exists."]);
         }
         return;
     }
     mysqli_stmt_close($checkStmt);
 
-    // If checks pass, insert the new student
-    // IMPORTANT: You should hash passwords, e.g.:
     // $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-    
-    $insertSql = "INSERT INTO student(name, email, phone, address, gender, password, student_id_number, room_number, is_deleted) 
+    // --- UPDATED SQL: Save student_id_number into student_id (PK) ---
+    $insertSql = "INSERT INTO student(student_id, name, email, phone, address, gender, password, room_number, is_deleted) 
                   VALUES(?, ?, ?, ?, ?, ?, ?, ?, 0)";
 
     $insertStmt = mysqli_prepare($con, $insertSql);
@@ -394,13 +423,13 @@ function createStudent($data)
         mysqli_stmt_bind_param(
             $insertStmt,
             "ssssssss",
+            $student_id, // This is the new VARCHAR PK
             $name,
             $email,
             $phone,
             $address,
             $gender,
-            $password, // Use $hashed_password here
-            $student_id_number,
+            $password, // Use $hashed_password
             $room_number
         );
 

@@ -1,3 +1,6 @@
+<!DOCTYPE html>
+<html lang="en">
+
 <?php
 /*
 * admin/staff.php
@@ -6,10 +9,8 @@
 * - Admins see a list of all staff and can add/edit/delete.
 * - Staff see only their own profile information with a link to edit.
 */
-
 include "pages/header.php"; // Includes assets, connection, get
-include "admin.php";      // Includes session check, gets $logged_in_user_role, $logged_in_staff_id
-// get.php is included in header.php
+include "admin.php";      // Includes session check, sets $logged_in_user_role, $logged_in_staff_id
 ?>
 
 <body>
@@ -38,8 +39,6 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role, 
                                 <span>Dashboard</span>
                             </a>
                         </li>
-
-                        <!-- Admin-Only Links -->
                         <?php if ($logged_in_user_role == 'admin') : ?>
                             <li class="sidebar-item ">
                                 <a href="student.php" class='sidebar-link'>
@@ -48,7 +47,6 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role, 
                                 </a>
                             </li>
                         <?php endif; ?>
-
                         <li class="sidebar-item">
                             <a href="complaint.php" class='sidebar-link'>
                                 <i class="bi bi-exclamation-octagon-fill"></i>
@@ -61,13 +59,17 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role, 
                                 <span>Feedback</span>
                             </a>
                         </li>
-
-                        <!-- Admin-Only Links -->
                         <?php if ($logged_in_user_role == 'admin') : ?>
                             <li class="sidebar-item">
                                 <a href="department.php" class='sidebar-link'>
                                     <i class="bi bi-building"></i>
                                     <span>Departments</span>
+                                </a>
+                            </li>
+                            <li class="sidebar-item">
+                                <a href="categories.php" class='sidebar-link'>
+                                    <i class="bi bi-tags-fill"></i>
+                                    <span>Categories</span>
                                 </a>
                             </li>
                         <?php endif; ?>
@@ -89,7 +91,6 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role, 
                             </li>
                         <?php endif; ?>
 
-                        <!-- Admin-Only Links -->
                         <?php if ($logged_in_user_role == 'admin') : ?>
                             <li class="sidebar-item">
                                 <a href="dormitory.php" class='sidebar-link'>
@@ -98,7 +99,6 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role, 
                                 </a>
                             </li>
                         <?php endif; ?>
-
                         <li class="sidebar-item">
                             <a href="settings.php" class='sidebar-link'>
                                 <i class="bi bi-gear-fill"></i>
@@ -191,8 +191,15 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role, 
                                                     <td><?php echo htmlspecialchars($row["phone"]); ?></td>
                                                     <td><?php echo htmlspecialchars($row["nric"]); ?></td>
                                                     <td><?php echo htmlspecialchars($row["address"]); ?></td>
-                                                    <td><?php echo htmlspecialchars($row["department_name"] ?? 'N/A'); ?></td>
-                                                    <td><?php echo ($row["gender"] == "1") ? "Male" : "Female"; ?></td>
+                                                    <td>
+                                                        <?php
+                                                        // Department name is already joined in getAllStaff/getStaffById
+                                                        echo htmlspecialchars($row["department_name"] ?? 'N/A');
+                                                        ?>
+                                                    </td>
+                                                    <td>
+                                                        <?php echo ($row["gender"] == "1") ? "Male" : "Female"; ?>
+                                                    </td>
                                                     <td><?php echo htmlspecialchars(ucfirst($row["staff_role"])); ?></td>
                                                     <td>
                                                         <a href="staff_edit.php?staff_id=<?php echo $staff_id; ?>" class="btn btn-info btn-sm"><i class="fa-solid fa-edit"></i></a>
@@ -201,10 +208,9 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role, 
                                                         <?php endif; ?>
                                                     </td>
                                                 </tr>
-                                        <?php
-                                            } // end while
-                                        } // end if ($getall)
-                                        ?>
+
+                                        <?php }
+                                        } ?>
                                     </tbody>
                                 </table>
                             </div>
@@ -276,7 +282,7 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role, 
                                 <label for="inputGender">Gender</label>
                                 <select class="form-select" name="gender" id="gender" aria-label="Default select example">
                                     <option value="1" selected>Male</option>
-                                    <option value="2">Female</option>
+                                    <option value="2">Female</option> <!-- Corrected Value -->
                                 </select>
                             </div>
                             <div class="form-group mt-2">
@@ -303,9 +309,8 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role, 
     <!-- JS Includes -->
     <script src="assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
     <script src="assets/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- Simple Datatables (included via assets.php) -->
-    <!-- <script src="assets/vendors/simple-datatables/simple-datatables.js"></script> -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (document.getElementById('datatablesSimple')) {
@@ -313,7 +318,8 @@ include "admin.php";      // Includes session check, gets $logged_in_user_role, 
             }
         });
     </script>
-    
+
     <script src="assets/js/main.js"></script>
 </body>
+
 </html>

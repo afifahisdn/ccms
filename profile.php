@@ -3,15 +3,15 @@
 <?php
 /*
 * profile.php
+*
 * Allows a logged-in student to view and update their profile information.
-* Also links to change_email.php and change_password.php.
 */
 
 // Includes session_start, db connection, settings fetch ($res)
 include "pages/header.php";
-// Includes student session check and fetches $student_data and $student_id
+// Includes student session check and fetches $student_data and $student_id (VARCHAR)
 include "auth.php";
-// Make sure get.php is included (it's also in header.php, but include_once is safe)
+// Make sure get.php is included
 include_once "server/inc/get.php";
 ?>
 
@@ -52,7 +52,6 @@ include_once "server/inc/get.php";
         }
 
         .bg-dark {
-            /* Using dark color for the info box */
             background-color: #343a40 !important;
         }
     </style>
@@ -84,7 +83,7 @@ include_once "server/inc/get.php";
                                 <a class="dropdown-item" href="?lang=en">English</a>
                             </div>
                         </div>
-                        <a href="admin/logout.php" class="quick-link d-inline-block">Logout</a> <!-- Link to student logout -->
+                        <a href="admin/logout.php" class="quick-link d-inline-block">Logout</a>
                     </div>
                 </div>
             </div>
@@ -94,7 +93,7 @@ include_once "server/inc/get.php";
             <div class="row align-items-center">
                 <div class="col-6 col-xl-2 site-logo">
                     <a href="index.php" class="text-white h5 mb-0">
-                        <img src="server/uploads/settings/<?php echo htmlspecialchars($res['header_image'] ?? 'logo.png'); ?>" alt="CCMS Logo" style="max-width: 130px;">
+                        <img src="server/uploads/settings/logo.png" alt="CCMS Logo" style="max-width: 70px; padding: 8px;">
                     </a>
                 </div>
                 <div class="col-6 col-md-10 d-xl-none text-right">
@@ -126,7 +125,7 @@ include_once "server/inc/get.php";
                 <div class="col-md-12 mb-5">
                     <?php
                     // Data is already fetched in auth.php as $student_data
-                    // $student_id is also available from auth.php
+                    // $student_id (VARCHAR PK) is also available from auth.php
                     if (!$student_data) {
                         echo "<p class='text-danger text-center'>Could not load student data.</p>";
                     } else {
@@ -143,7 +142,7 @@ include_once "server/inc/get.php";
                                     </div>
                                     <div class="profile-info-item">
                                         <strong class="text-info">Student ID:</strong>
-                                        <p><?php echo htmlspecialchars($student_data["student_id_number"]); ?></p>
+                                        <p><?php echo htmlspecialchars($student_data["student_id"]); ?></p>
                                     </div>
                                     <div class="profile-info-item">
                                         <strong class="text-info">Email:</strong>
@@ -167,38 +166,39 @@ include_once "server/inc/get.php";
                                     </div>
                                 </div>
                             </div>
-
                             <!-- Right Side: Edit Form -->
                             <div class="col-lg-7">
                                 <div class="p-4 bg-white rounded shadow-sm">
                                     <div class="d-flex justify-content-between align-items-center mb-4">
                                         <h4 class="text-primary">Profile Settings</h4>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteDataFromHome(<?php echo $student_id; ?>, 'student', 'student_id')">
-                                            <i class="fa fa-trash"></i> Delete Account
-                                        </button>
+                                        <!-- Delete Account Button Removed -->
                                     </div>
 
                                     <div class="mb-4 text-center">
-                                        <a class="btn btn-outline-secondary mr-2" href="change_email.php">
+                                        <a class="btn btn-outline-secondary mr-2" style="color: white;" href="change_email.php">
                                             <i class="fa fa-envelope"></i> Change Email
                                         </a>
-                                        <a href="change_password.php" class="btn btn-outline-secondary">
+                                        <a href="change_password.php" style="color: white;" class="btn btn-outline-secondary">
                                             <i class="fa fa-lock"></i> Change Password
                                         </a>
                                     </div>
 
                                     <hr class="mb-4">
 
-                                    <form method="post" class="needs-validation" novalidate>
+                                    <form method="post" class="needs-validation" novalidate onsubmit="return false;">
                                         <div class="row">
                                             <div class="col-md-12 mb-3">
                                                 <label for="new_name" class="form-label">Name</label>
                                                 <input type="text" class="form-control" name="new_name" id="new_name" placeholder="Your name" value="<?php echo htmlspecialchars($student_data["name"]); ?>" required>
                                             </div>
+
+                                            <!-- UPDATED: Student ID is now readonly -->
                                             <div class="col-md-6 mb-3">
                                                 <label for="student_id_number" class="form-label">Student ID Number</label>
-                                                <input type="text" class="form-control" name="student_id_number" id="student_id_number" placeholder="e.g., STU12345" value="<?php echo htmlspecialchars($student_data["student_id_number"]); ?>" required>
+                                                <input type="text" class="form-control" name="student_id_number" id="student_id_number" value="<?php echo htmlspecialchars($student_data["student_id"]); ?>" readonly disabled>
+                                                <small class="form-text text-muted">Student ID cannot be changed.</small>
                                             </div>
+
                                             <div class="col-md-6 mb-3">
                                                 <label for="new_phone" class="form-label">Mobile Number</label>
                                                 <input type="tel" class="form-control" name="new_phone" id="new_phone" placeholder="e.g., 0123456789" value="<?php echo htmlspecialchars($student_data["phone"]); ?>" required pattern="[0-9]{10,11}">
@@ -221,8 +221,8 @@ include_once "server/inc/get.php";
                                             </div>
                                         </div>
 
-                                        <!-- Hidden student_id -->
-                                        <input type="hidden" name="student_id" value="<?php echo $student_id; ?>" id="student_id">
+                                        <!-- Hidden student_id (This is the VARCHAR PK) -->
+                                        <input type="hidden" name="student_id" value="<?php echo htmlspecialchars($student_id); ?>" id="student_id">
 
                                         <div class="mt-4 text-center">
                                             <!-- Call updateStudentProfile from homejs.js -->
@@ -247,7 +247,7 @@ include_once "server/inc/get.php";
             var saveChangesBtn = document.getElementById('saveChangesBtn');
             if (saveChangesBtn) {
                 saveChangesBtn.addEventListener('click', function() {
-                    var studentId = document.getElementById('student_id').value; // Get ID from hidden input
+                    var studentId = document.getElementById('student_id').value; // Get VARCHAR ID from hidden input
                     // Call the updated function name from homejs.js
                     updateStudentProfile(studentId);
                 });

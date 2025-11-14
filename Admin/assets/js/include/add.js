@@ -2,6 +2,7 @@
  * add.js
  *
  * Contains all JavaScript functions for ADDING new data via AJAX.
+ * - addCategory 
  * - addDepartment
  * - addDormitory
  * - addStudent (for public registration)
@@ -10,13 +11,52 @@
  */
 
 /**
+ * Adds a new complaint category.
+ * Called from admin/categories.php modal.
+ */
+function addCategory(formElement) {
+    let fd = new FormData(formElement);
+
+    // Validate form fields
+    const categoryName = fd.get("category_name") ? fd.get("category_name").trim() : "";
+
+    if (!categoryName) {
+        errorMessage("Please Enter Category Name");
+        return;
+    }
+
+    $.ajax({
+        method: "POST",
+        url: "../server/api.php?function_code=addCategory",
+        data: fd,
+        dataType: 'json',
+        success: function(response) {
+            console.log("Add Category Response:", response);
+            if (response && response.exists) {
+                errorMessage(response.message || "This Category Name Already Exists.");
+            } else if (response && response.success) {
+                successToast("Category added successfully!"); // Re-loads page
+            } else {
+                errorMessage(response.error || "Failed to add category.");
+            }
+        },
+        cache: false,
+        contentType: false,
+        processData: false,
+        error: function(error) {
+            console.log(`Add Category Error: ${JSON.stringify(error)}`);
+            errorMessage("An error occurred while adding the category.");
+        },
+    });
+};
+
+/**
  * Adds a new department.
  * Called by admin/department.php modal.
  */
 function addDepartment(formElement) {
     let fd = new FormData(formElement);
 
-    // Validate form fields
     const departmentName = fd.get("department_name") ? fd.get("department_name").trim() : "";
     const departmentType = fd.get("department_type") ? fd.get("department_type").trim() : "";
 
@@ -125,12 +165,10 @@ function addStudent(formElement) {
     if (!password) { errorMessage("Please Enter Password."); return; }
     if (password !== conf_password) { errorMessage("Passwords do not match."); return; }
     
-    // --- New Validation Call ---
-    if (!validateStudentIDNumber(student_id_number, true)) { return; } // Show error
-    // --- End New Validation ---
-
-    if (!emailvalidation(email, true)) { return; } // Show error
-    if (!phonenumber(phone, true)) { return; }   // Show error
+    // Call validation functions (they will show their own errors)
+    if (typeof validateStudentIDNumber === 'function' && !validateStudentIDNumber(student_id_number)) { return; }
+    if (typeof emailvalidation === 'function' && !emailvalidation(email)) { return; }
+    if (typeof phonenumber === 'function' && !phonenumber(phone)) { return; }
 
     $.ajax({
         method: "POST",
@@ -139,6 +177,7 @@ function addStudent(formElement) {
         dataType: 'json',
         success: function(response) {
             console.log("Add Student Response:", response);
+            // This is where the "already exists" error is handled
             if (response && response.exists) {
                 errorMessage(response.message || "Email or Student ID already exists.");
             } else if (response && response.success) {
@@ -184,12 +223,10 @@ function addStudentAdmin(formElement) {
     if (!password) { errorMessage("Please Enter Password."); return; }
     if (password !== conf_password) { errorMessage("Passwords do not match."); return; }
 
-    // --- New Validation Call ---
-    if (!validateStudentIDNumber(student_id_number, true)) { return; } // Show error
-    // --- End New Validation ---
-
-    if (!emailvalidation(email, true)) { return; }
-    if (!phonenumber(phone, true)) { return; }
+    // Call validation functions (they will show their own errors)
+    if (typeof validateStudentIDNumber === 'function' && !validateStudentIDNumber(student_id_number)) { return; }
+    if (typeof emailvalidation === 'function' && !emailvalidation(email)) { return; }
+    if (typeof phonenumber === 'function' && !phonenumber(phone)) { return; }
 
     $.ajax({
         method: "POST",
@@ -244,9 +281,10 @@ function addStaff(formElement) {
     if (!password) { errorMessage("Please Enter Password."); return; }
     if (password !== conf_password) { errorMessage("Passwords do not match."); return; }
     if (!gender) { errorMessage("Please Select Gender."); return; }
-    if (!emailvalidation(email, true)) { return; }
-    if (!phonenumber(phone, true)) { return; }
-    // Add NRIC validation if needed
+
+    // Call validation functions (they will show their own errors)
+    // Note: Staff emails do not need @college.edu validation
+    if (typeof phonenumber === 'function' && !phonenumber(phone)) { return; }
 
     $.ajax({
         method: "POST",

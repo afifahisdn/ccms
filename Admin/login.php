@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<?php 
+<?php
 /*
 * admin/login.php
-* Login page for both Staff and Students.
+*
+* Login page for both Staff/Admins and Students.
 * The 'login' JS function will redirect to admin/index.php or ../index.php
 */
-include 'pages/header.php'; 
+include 'pages/header.php'; // Includes assets
 ?>
 
 <body>
     <div id="auth" class="bg-img">
         <div class="card">
-            <div class="d-flex align-items-center mb-4">
-                <!-- Changed logo and title -->
-                <img src="assets/images/logo.png" alt="Logo" style="height: 40px;">
-                <h2 class="mb-0">-Sign In</h2>
+            <div class="d-flex align-items-center text-center mb-4">
+                <img src="assets/images/logo.png" alt="CCMS Logo" style="height: 40px;">
+                <h2 class="mb-0">- Sign In</h2>
             </div>
-            <form method="post">
+            <form method="post" onsubmit="return false;">
                 <div class="mb-3" style="margin-top: 8px">
                     <label for="email" class="form-label"><b>Email Address</b></label>
                     <input type="text" placeholder="Enter Email" name="email" id="email" class="form-control" required>
@@ -45,8 +45,8 @@ include 'pages/header.php';
     body {
         background-color: #fff;
         /* fallback for non-supported browsers */
-        /* Changed background image to a more appropriate placeholder */
         background-image: url('assets/images/college_background.jpg');
+        /* Ensure this image exists */
         background-position: center;
         background-repeat: no-repeat;
         background-size: cover;
@@ -60,22 +60,14 @@ include 'pages/header.php';
     .card {
         width: 100%;
         max-width: 800px;
-        /* Adjust max-width as needed */
         height: auto;
-        /* Let the height be determined by content */
         max-height: calc(100vh - 40px);
-        /* Ensure it doesn't exceed the viewport height minus some padding */
         border-radius: 10px;
         background-color: #ffffff;
         margin-top: 40px;
-        padding-top: 40px;
-        padding-bottom: 20px;
-        padding-left: 90px;
-        /* Increase padding to make the card bigger */
-        padding-right: 90px;
+        padding: 40px 90px;
         box-shadow: 2px 5px 20px rgba(0, 0, 0, 0.1);
         overflow-y: auto;
-        /* Add scrollbar if content exceeds height */
     }
 
     .form-label {
@@ -114,10 +106,11 @@ include 'pages/header.php';
     @media screen and (max-width: 768px) {
         .card {
             max-width: 90%;
-            /* Adjust width for smaller screens */
             padding: 40px;
-            margin-left: 15px;
+            margin-left: auto;
+            margin-right: auto;
         }
     }
 </style>
+
 </html>

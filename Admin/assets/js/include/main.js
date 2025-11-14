@@ -2,18 +2,9 @@
  * main.js
  *
  * Contains JavaScript functions primarily used by the ADMIN panel.
- * - simpleDatatables initialization
- * - settingsUpdate
- * - uploadSettingImage
- * - login (handles admin/staff and student)
- * - updateData (generic inline update)
- * - callUpdate (helper for updateData)
- * - changePasswordAdmin
- * - checkStaffPasswordByEmail
- * - addComplaintAdmin
  */
 
-/*.............................................................. Simple Datatables Init ..............................................................*/
+/*.............................................................. Grid View (DataTables) ..............................................................*/
 window.addEventListener("DOMContentLoaded", (event) => {
     // Simple-DataTables
     // https://github.com/fiduswriter/Simple-DataTables/wiki
@@ -23,9 +14,9 @@ window.addEventListener("DOMContentLoaded", (event) => {
     }
 });
 
-/*.............................................................. Settings Update ..............................................................*/
+/*.............................................................. Settings Data..............................................................*/
 
-// General function to update settings table fields
+// General function to update settings table text fields
 settingsUpdate = (ele, field) => {
     var val = document.getElementById(ele.id).value;
 
@@ -44,7 +35,7 @@ settingsUpdate = (ele, field) => {
             if (response && response.success) {
                 successToast_RN("Setting updated!"); // Show success without reload
             } else {
-                errorMessage("Failed to update setting.");
+                errorMessage(response.error || "Failed to update setting.");
             }
         },
         error: function(error) {
@@ -72,9 +63,9 @@ login = (myForm) => {
         success: function($data) {
             console.log("Login Response:", $data);
             if ($data.trim() == "admin") { // Staff or Admin
-                window.location.href = "index.php";
+                window.location.href = "index.php"; // Redirect to admin dashboard
             } else if ($data.trim() == "customer") { // Student
-                window.location.href = "../index.php";
+                window.location.href = "../index.php"; // Redirect to main site
             } else {
                 errorMessage("Email or Password is incorrect.");
             }
@@ -91,9 +82,44 @@ login = (myForm) => {
 
 /*.............................................................. Generic Data Update (Inline Edit) ..............................................................*/
 
-// Triggered by onchange events in tables (e.g., complaint status dropdown)
+/**
+ * Shows a warning popup BEFORE updating a complaint status to 'Closed'.
+ * Called by onchange in admin/complaint.php status dropdown.
+ */
+function confirmStatusChange(selectElement, complaintId, currentStatus) {
+    var newStatus = selectElement.value;
+
+    if (newStatus === "Closed") {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Setting this complaint to 'Closed' is final. The student cannot re-open it. Do you want to proceed?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, close it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // User confirmed, proceed with update
+                updateData(selectElement, complaintId, 'complaint_status', 'complaint', 'complaint_id');
+            } else {
+                // User cancelled, reset the dropdown
+                selectElement.value = currentStatus;
+            }
+        });
+    } else {
+        // For any other status change (Open, In Progress, Resolved), update immediately
+        updateData(selectElement, complaintId, 'complaint_status', 'complaint', 'complaint_id');
+    }
+}
+
+/**
+ * Generic function for inline edits (like Urgency, or Category name).
+ * Called by onchange events in tables.
+ */
 updateData = (ele, id, field, table, id_fild) => {
-    var val = ele.value;
+    var val = ele.value; // Get value directly from the element passed
 
     var data = {
         id_fild: id_fild,
@@ -106,15 +132,15 @@ updateData = (ele, id, field, table, id_fild) => {
     // Add validation if needed
     if (field == "email") {
         if (!emailvalidation(val, false)) { // Pass false to prevent reload
-            return; 
+            return;
         }
     } else if (field == "phone") {
         if (!phonenumber(val, false)) { // Pass false to prevent reload
             return;
         }
     }
-    
-    callUpdate(data);
+
+    callUpdate(data); // Call the AJAX function
 };
 
 // The actual AJAX call for inline updates
@@ -129,7 +155,7 @@ callUpdate = (data) => {
             if (response && response.success) {
                 successToast("Update successful!"); // Reload page
             } else {
-                errorMessage("Update failed. Please check the value.");
+                errorMessage(response.error || "Update failed. Please check the value.");
             }
         },
         error: function(error) {
@@ -153,6 +179,10 @@ changePasswordAdmin = (form) => {
         errorMessage("Please fill in all password fields.");
         return;
     }
+    if (newPassword.length < 6) {
+        errorMessage("Password must be at least 6 characters long.");
+        return;
+    }
     if (newPassword !== confirmPassword) {
         errorMessage("New passwords do not match.");
         return;
@@ -167,14 +197,14 @@ changePasswordAdmin = (form) => {
         var data = {
             id: userEmail,
             field: "password",
-            value: newPassword, // Send new password
-            id_fild: "email",   // Update WHERE email = ?
-            table: "staff",
+            value: newPassword,
+            id_fild: "email",
+            table: "staff", // Corrected table name
         };
 
         $.ajax({
             method: "POST",
-            url: "../server/api.php?function_code=updateData", // Use generic update
+            url: "../server/api.php?function_code=updateData",
             data: data,
             dataType: 'json',
             success: function(response) {
@@ -182,7 +212,7 @@ changePasswordAdmin = (form) => {
                 if (response && response.success) {
                     successToastwithLogoutInAdmin("Password changed successfully! Please log in again.");
                 } else {
-                    errorMessage("Failed to change password. Please try again.");
+                    errorMessage(response.error || "Failed to change password. Please try again.");
                 }
             },
             error: function(error) {
@@ -204,7 +234,7 @@ checkStaffPasswordByEmail = (password, email) => {
     var result_count = 0;
     $.ajax({
         method: "POST",
-        url: "../server/api.php?function_code=checkStaffPasswordByEmail",
+        url: "../server/api.php?function_code=checkStaffPasswordByEmail", // Correct API endpoint
         data: data,
         async: false, // Wait for the result
         dataType: 'text',
@@ -224,6 +254,8 @@ checkStaffPasswordByEmail = (password, email) => {
 };
 
 /*.............................................................. Add Complaint (Admin Form) ..............................................................*/
+
+// This function replaces the old 'addRequestAdmin'
 addComplaintAdmin = (formElement) => {
     var formData = new FormData(formElement);
 
@@ -244,11 +276,10 @@ addComplaintAdmin = (formElement) => {
         errorMessage("Please Enter Complaint Title.");
         return;
     }
-    if (formData.get("complaint_category").trim() === "") {
+    if (formData.get("category_id").trim() === "") { // <-- Updated to category_id
         errorMessage("Please Select a Category.");
         return;
     }
-    // Urgency has a default, description/photo are optional
 
     $.ajax({
         method: "POST",

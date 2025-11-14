@@ -1,3 +1,6 @@
+<!DOCTYPE html>
+<html lang="en">
+
 <?php
 /*
 * admin/staff_edit.php
@@ -6,7 +9,7 @@
 */
 
 include "pages/header.php"; // Includes assets, connection, get
-include "admin.php";      // Includes session check, gets $logged_in_user_role, $logged_in_staff_id
+include "admin.php";      // Includes session check, sets $logged_in_user_role, $logged_in_staff_id
 
 // --- Security Check ---
 // Get the ID of the staff member being edited from the URL
@@ -86,6 +89,12 @@ if ($staff_id_to_edit === 0 || ($logged_in_user_role !== 'admin' && $staff_id_to
                                 <a href="department.php" class='sidebar-link'>
                                     <i class="bi bi-building"></i>
                                     <span>Departments</span>
+                                </a>
+                            </li>
+                            <li class="sidebar-item">
+                                <a href="categories.php" class='sidebar-link'>
+                                    <i class="bi bi-tags-fill"></i>
+                                    <span>Categories</span>
                                 </a>
                             </li>
                         <?php endif; ?>
@@ -174,30 +183,28 @@ if ($staff_id_to_edit === 0 || ($logged_in_user_role !== 'admin' && $staff_id_to
                                 ?>
                                     <form onsubmit="return false;">
                                         <div class="form-group mt-2">
-                                            <label for="inputName">Name</label>
+                                            <label for="inputName_<?php echo $staff_id; ?>">Name</label>
                                             <input id="inputName_<?php echo $staff_id; ?>" type="text" name="name" onchange="updateData(this, '<?php echo $staff_id; ?>', 'name', 'staff', 'staff_id');" value="<?php echo htmlspecialchars($row['name']); ?>" required placeholder="Enter Full Name" autocomplete="off" class="form-control">
                                         </div>
                                         <div class="form-group mt-2">
-                                            <label for="inputEmail">Email address</label>
+                                            <label for="inputEmail_<?php echo $staff_id; ?>">Email address</label>
                                             <input id="inputEmail_<?php echo $staff_id; ?>" type="email" name="email" onchange="updateData(this, '<?php echo $staff_id; ?>', 'email', 'staff', 'staff_id');" value="<?php echo htmlspecialchars($row['email']); ?>" required placeholder="Enter email" autocomplete="off" class="form-control">
                                         </div>
                                         <div class="form-group mt-2">
-                                            <label for="inputPhone">Phone Number</label>
+                                            <label for="inputPhone_<?php echo $staff_id; ?>">Phone Number</label>
                                             <input id="inputPhone_<?php echo $staff_id; ?>" type="text" name="phone" required placeholder="Enter Phone Number" autocomplete="off" onchange="updateData(this, '<?php echo $staff_id; ?>', 'phone', 'staff', 'staff_id');" value="<?php echo htmlspecialchars($row['phone']); ?>" class="form-control">
                                         </div>
                                         <div class="form-group mt-2">
-                                            <label for="inputNRIC">NRIC</label>
+                                            <label for="inputNRIC_<?php echo $staff_id; ?>">NRIC</label>
                                             <input id="inputNRIC_<?php echo $staff_id; ?>" type="text" name="nric" onchange="updateData(this, '<?php echo $staff_id; ?>', 'nric', 'staff', 'staff_id');" value="<?php echo htmlspecialchars($row['nric']); ?>" required placeholder="Enter NRIC Number" autocomplete="off" class="form-control">
                                         </div>
 
                                         <!-- Department Dropdown -->
                                         <div class="form-group mt-2">
                                             <label for="department_id_<?php echo $staff_id; ?>">Department</label>
-                                            <select onchange='updateData(this, "<?php echo $staff_id; ?>","department_id", "staff", "staff_id")' id="department_id_<?php echo $staff_id; ?>" class="form-control" name="department_id" <?php echo ($logged_in_user_role != 'admin') ? 'disabled' : ''; // Disable for non-admins 
-                                                                                                                                                                                                                                                                        ?>>
+                                            <select onchange='updateData(this, "<?php echo $staff_id; ?>","department_id", "staff", "staff_id")' id="department_id_<?php echo $staff_id; ?>" class="form-control" name="department_id" <?php echo ($logged_in_user_role != 'admin') ? 'disabled' : ''; ?>>
                                                 <option value="">Select Department</option>
                                                 <?php
-                                                // Fetch all departments
                                                 $getallDepts = getAllDepartment();
                                                 if ($getallDepts) {
                                                     while ($row2 = mysqli_fetch_assoc($getallDepts)) {
@@ -212,28 +219,27 @@ if ($staff_id_to_edit === 0 || ($logged_in_user_role !== 'admin' && $staff_id_to
                                         </div>
 
                                         <!-- Role Dropdown (Admin Only) -->
-                                        <?php if ($logged_in_user_role == 'admin') : ?>
-                                            <div class="form-group mt-2">
-                                                <label for="staff_role_<?php echo $staff_id; ?>">Role</label>
-                                                <select onchange='updateData(this, "<?php echo $staff_id; ?>","staff_role", "staff", "staff_id")' id="staff_role_<?php echo $staff_id; ?>" class="form-control" name="staff_role">
-                                                    <option value="staff" <?php if ($row['staff_role'] == 'staff') echo 'selected'; ?>>Staff</option>
-                                                    <option value="admin" <?php if ($row['staff_role'] == 'admin') echo 'selected'; ?>>Admin</option>
-                                                </select>
-                                            </div>
-                                        <?php endif; ?>
+                                        <div class="form-group mt-2">
+                                            <label for="staff_role_<?php echo $staff_id; ?>">Role</label>
+                                            <select onchange='updateData(this, "<?php echo $staff_id; ?>","staff_role", "staff", "staff_id")' id="staff_role_<?php echo $staff_id; ?>" class="form-control" name="staff_role" <?php echo ($logged_in_user_role != 'admin') ? 'disabled' : ''; ?>>
+                                                <option value="staff" <?php if ($row['staff_role'] == 'staff') echo 'selected'; ?>>Staff</option>
+                                                <option value="admin" <?php if ($row['staff_role'] == 'admin') echo 'selected'; ?>>Admin</option>
+                                            </select>
+                                        </div>
 
                                         <div class="form-group mt-2">
-                                            <label for="inputAddress">Address</label>
+                                            <label for="inputAddress_<?php echo $staff_id; ?>">Address</label>
                                             <textarea id="inputAddress_<?php echo $staff_id; ?>" name="address" onchange="updateData(this, '<?php echo $staff_id; ?>', 'address', 'staff', 'staff_id');" required placeholder="Enter Address" autocomplete="off" class="form-control" rows="3"><?php echo htmlspecialchars($row['address']); ?></textarea>
                                         </div>
                                         <div class="form-group mt-2">
-                                            <label for="inputGender">Gender</label>
+                                            <label for="gender_<?php echo $staff_id; ?>">Gender</label>
                                             <select onchange='updateData(this, "<?php echo $staff_id; ?>","gender", "staff", "staff_id")' id="gender_<?php echo $staff_id; ?>" class="form-control" name="gender">
                                                 <option value="1" <?php if ($row['gender'] == "1") echo 'selected'; ?>>Male</option>
-                                                <option value="2" <?php if ($row['gender'] == "2") echo 'selected'; ?>>Female</option>
+                                                <option value="2" <?php if ($row['gender'] == "2") echo 'selected'; ?>>Female</option> <!-- Corrected Value -->
                                             </select>
                                         </div>
                                         <div class="mt-3">
+                                            <!-- Back button goes to staff list for admin, dashboard for staff -->
                                             <a href="<?php echo ($logged_in_user_role == 'admin') ? 'staff.php' : 'index.php'; ?>" class="btn btn-secondary">Back</a>
                                         </div>
                                     </form>

@@ -3,13 +3,14 @@
 <?php
 /*
 * submit_complaint.php
+*
 * Form for logged-in students to submit a new complaint.
 * Requires auth.php.
 */
 
 // Includes session_start, db connection, settings fetch ($res)
 include "pages/header.php";
-// Includes student session check and fetches $student_data and $student_id
+// Includes student session check and fetches $student_data and $student_id (VARCHAR)
 include "auth.php";
 // Make sure get.php is included (it's also in header.php, but include_once is safe)
 include_once "server/inc/get.php";
@@ -21,7 +22,6 @@ include_once "server/inc/get.php";
     <title>Submit Complaint - CCMS</title>
     <!-- CSS is included from pages/header.php -->
     <!-- Font Awesome for icons (included via pages/assets.php) -->
-    <!-- iziToast CSS (included via pages/assets.php) -->
 </head>
 
 <body data-spy="scroll" data-target=".site-navbar-target" data-offset="200">
@@ -60,7 +60,7 @@ include_once "server/inc/get.php";
             <div class="row align-items-center">
                 <div class="col-6 col-xl-2 site-logo">
                     <a href="index.php" class="text-white h5 mb-0">
-                        <img src="server/uploads/settings/<?php echo htmlspecialchars($res['header_image'] ?? 'logo.png'); ?>" alt="CCMS Logo" style="max-width: 130px;">
+                        <img src="server/uploads/settings/logo.png" alt="CCMS Logo" style="max-width: 70px; padding: 8px;">
                     </a>
                 </div>
                 <div class="col-6 col-md-10 d-xl-none text-right">
@@ -93,7 +93,7 @@ include_once "server/inc/get.php";
             <div class="row justify-content-center">
                 <div class="col-md-10 mb-5">
                     <!-- Add enctype for file uploads -->
-                    <form class="p-5 bg-white rounded shadow needs-validation" method="post" enctype="multipart/form-data" novalidate>
+                    <form class="p-5 bg-white rounded shadow needs-validation" method="post" enctype="multipart/form-data" novalidate onsubmit="return false;">
 
                         <h4>Complaint Details</h4>
                         <hr class="mb-4">
@@ -133,27 +133,32 @@ include_once "server/inc/get.php";
                         </div>
 
                         <div class="row">
+                            <!-- === UPDATED CATEGORY DROPDOWN === -->
                             <div class="col-md-6 mb-3">
-                                <label class="text-black" for="complaint_category">Category <span class="text-danger">*</span></label>
-                                <select id="complaint_category" class='form-control' name="complaint_category" required>
+                                <label class="text-black" for="category_id">Category <span class="text-danger">*</span></label>
+                                <!-- The name is now "category_id" -->
+                                <select id="category_id" class='form-control' name="category_id" required>
                                     <option value="">-- Select Category --</option>
-                                    <option value="plumbing">Plumbing</option>
-                                    <option value="electrical">Electrical</option>
-                                    <option value="furniture">Furniture</option>
-                                    <option value="cleaning">Cleaning</option>
-                                    <option value="internet">Internet/WiFi</option>
-                                    <option value="security">Security</option>
-                                    <option value="pest_control">Pest Control</option>
-                                    <option value="heating_cooling">Heating/Cooling (AC)</option>
-                                    <option value="other">Other</option>
+                                    <?php
+                                    // Use new function to get categories from DB
+                                    $getallCategories = getAllCategories();
+                                    if ($getallCategories) {
+                                        while ($cat_row = mysqli_fetch_assoc($getallCategories)) {
+                                            echo '<option value="' . $cat_row["category_id"] . '">'
+                                                . htmlspecialchars(ucfirst($cat_row["category_name"]))
+                                                . '</option>';
+                                        }
+                                    }
+                                    ?>
                                 </select>
                                 <div class="invalid-feedback">Please select a category.</div>
                             </div>
+                            <!-- Urgency Level Dropdown -->
                             <div class="col-md-6 mb-3">
                                 <label class="text-black" for="urgency_level">Urgency Level <span class="text-danger">*</span></label>
                                 <select id="urgency_level" class='form-control' name="urgency_level" required>
                                     <option value="low">Low</option>
-                                    <option value="medium" selected>Medium</option> <!-- Default to medium -->
+                                    <option value="medium" selected>Medium</option>
                                     <option value="high">High</option>
                                     <option value="critical">Critical</option>
                                 </select>
@@ -170,12 +175,12 @@ include_once "server/inc/get.php";
                         <div class="row form-group mb-4">
                             <div class="col-md-12">
                                 <label class="text-black" for="photo">Upload Photo (Optional)</label>
-                                <input type="file" name="photo" id="photo" class="form-control-file"> <!-- Use form-control-file for basic styling -->
+                                <input type="file" name="photo" id="photo" class="form-control-file">
                                 <small class="form-text text-muted">Max file size: 5MB. Allowed types: JPG, PNG, GIF.</small>
                             </div>
                         </div>
 
-                        <!-- Hidden student_id -->
+                        <!-- Hidden student_id (VARCHAR PK) -->
                         <input type="hidden" name="student_id" id="student_id" value="<?php echo htmlspecialchars($_SESSION["student_id"]); ?>">
 
                         <div class="row form-group mt-4">
@@ -192,7 +197,7 @@ include_once "server/inc/get.php";
 
     <?php include "pages/footer.php"; ?>
 
-    <!-- JS Includes (jQuery, iziToast, SweetAlert are in assets.php) -->
+    <!-- JS Includes (loaded via pages/header.php -> assets.php) -->
     <script src="js/jquery-migrate-3.0.1.min.js"></script>
     <script src="js/jquery-ui.js"></script>
     <script src="js/jquery.easing.1.3.js"></script>
@@ -214,14 +219,9 @@ include_once "server/inc/get.php";
 
     <!-- Inline script for form validation -->
     <script>
-        // Example starter JavaScript for disabling form submissions if there are invalid fields
         (function() {
             'use strict'
-
-            // Fetch all the forms we want to apply custom Bootstrap validation styles to
             var forms = document.querySelectorAll('.needs-validation')
-
-            // Loop over them and prevent submission
             Array.prototype.slice.call(forms)
                 .forEach(function(form) {
                     var submitButton = form.querySelector('input[type="button"][onclick^="addComplaint"]');
@@ -230,10 +230,9 @@ include_once "server/inc/get.php";
                             if (!form.checkValidity()) {
                                 event.preventDefault()
                                 event.stopPropagation()
-                                // Optionally show an alert or focus the first invalid field
-                                errorMessage('Please fill out all required fields correctly.');
-                            } else {
-                                // If valid, the onclick="addComplaint(this.form)" will proceed
+                                if (typeof errorMessage === 'function') {
+                                    errorMessage('Please fill out all required fields correctly.');
+                                }
                             }
                             form.classList.add('was-validated')
                         }, false)
@@ -243,5 +242,4 @@ include_once "server/inc/get.php";
     </script>
 
 </body>
-
 </html>
