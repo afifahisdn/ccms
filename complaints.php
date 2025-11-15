@@ -1,16 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
 <?php
 /*
 * complaints.php
 *
 * Displays a list of all complaints submitted by the logged-in student.
-* Requires auth.php to be included first.
 */
 
 // Includes session_start, db connection, settings fetch ($res)
 include "pages/header.php";
-// Includes student session check and fetches $student_data and $student_id (VARCHAR)
+// Includes student session check and fetches $student_data
 include "auth.php";
 // Make sure get.php is included (it's also in header.php, but include_once is safe)
 include_once "server/inc/get.php";
@@ -57,7 +54,7 @@ autoCloseComplaints();
                                 <a class="dropdown-item" href="?lang=en">English</a>
                             </div>
                         </div>
-                        <a href="admin/logout.php" class="quick-link d-inline-block">Logout</a>
+                        <a href="logout.php" class="quick-link d-inline-block">Logout</a>
                     </div>
                 </div>
             </div>
@@ -67,7 +64,7 @@ autoCloseComplaints();
             <div class="row align-items-center">
                 <div class="col-6 col-xl-2 site-logo">
                     <a href="index.php" class="text-white h5 mb-0">
-                        <img src="server/uploads/settings/logo.png" alt="CCMS Logo" style="max-width: 70px; padding: 8px;">
+                        <img src="server/uploads/settings/<?php echo htmlspecialchars($res['header_image'] ?? 'logo.png'); ?>" alt="CCMS Logo" style="max-width: 130px;">
                     </a>
                 </div>
                 <div class="col-6 col-md-10 d-xl-none text-right">
@@ -150,7 +147,7 @@ autoCloseComplaints();
 
                                     <?php if (!empty($row['complaint_description'])) : ?>
                                         <p class="mb-2"><strong>Description:</strong></p>
-                                        <p class="text-muted" style="white-space: pre-wrap; color: #262323 !important;"><?php echo htmlspecialchars($row['complaint_description']); ?></p>
+                                        <p class="text-muted" style="white-space: pre-wrap;"><?php echo htmlspecialchars($row['complaint_description']); ?></p>
                                     <?php endif; ?>
 
                                     <?php if (!empty($row['photo'])) : ?>
@@ -203,20 +200,8 @@ autoCloseComplaints();
                                                 <button type="button" onclick="withdrawComplaint(<?php echo $complaint_id; ?>)" class="btn btn-sm btn-danger">
                                                     <i class="fa fa-times-circle"></i> Withdraw Complaint
                                                 </button>
-                                            <?php elseif ($complaint_status == 'Resolved') : ?>
-                                                <!-- Show Approve/Re-Open buttons -->
-                                                <div class="alert alert-info p-3">
-                                                    <h5 class="alert-heading">Action Needed</h5>
-                                                    <p class="mb-2">This complaint is marked as "Resolved" by staff. Please review the resolution notes (if any) and either approve it (which will close it) or re-open it if the issue is not fixed.</p>
-                                                    <button type="button" onclick="approveComplaint(<?php echo $complaint_id; ?>)" class="btn btn-success me-2">
-                                                        <i class="fa fa-check"></i> Approve & Close
-                                                    </button>
-                                                    <button type="button" onclick="reopenComplaint(<?php echo $complaint_id; ?>)" class="btn btn-warning">
-                                                        <i class="fa fa-folder-open"></i> Re-Open Complaint
-                                                    </button>
-                                                </div>
                                             <?php else : ?>
-                                                <!-- Show a simple message for In Progress, Closed, or Withdrawn -->
+                                                <!-- Show a simple message for all other statuses -->
                                                 <p class="text-muted small">No actions are available for this complaint.</p>
                                             <?php endif; ?>
                                         </div>
@@ -249,11 +234,12 @@ autoCloseComplaints();
     <script src="js/aos.js"></script>
 
     <!-- Custom JS files (loaded via assets.php) -->
-    <!-- <script src="admin/assets/js/include/alerts.js"></script> -->
-    <!-- <script src="admin/assets/js/include/homejs.js"></script> -->
+    <!-- <script src="admin/assets/js/include/alerts.js"></script>  -->
+    <!-- <script src="admin/assets/js/include/homejs.js"></script>  -->
     <!-- <script src="admin/assets/js/include/delete.js"></script> -->
 
     <script src="js/main.js"></script> <!-- General template JS -->
+
 
     <!-- Custom CSS for Status Bar and Complaint Card -->
     <style>
@@ -294,32 +280,41 @@ autoCloseComplaints();
         /* Urgency Colors */
         .urgency-low {
             color: #28a745;
+            font-weight: bold;
         }
         .urgency-medium {
             color: #ffc107;
+            font-weight: bold;
         }
         .urgency-high {
             color: #fd7e14;
+            font-weight: bold;
         }
         .urgency-critical {
             color: #dc3545;
+            font-weight: bold;
         }
 
         /* Status Colors (for text and card border) */
         .status-open {
             color: #007bff;
+            font-weight: bold;
         }
         .status-inprogress {
             color: #ffc107;
+            font-weight: bold;
         }
         .status-resolved {
             color: #28a745;
+            font-weight: bold;
         }
         .status-closed {
             color: #6c757d;
+            font-weight: bold;
         }
         .status-withdrawn {
             color: #dc3545;
+            font-weight: bold;
         }
 
         .complaint-card.status-open {
