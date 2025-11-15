@@ -19,14 +19,15 @@ function addCategory($data)
     include "connection.php";
 
     $category_name = mysqli_real_escape_string($con, $data["category_name"]);
+    $department_id = mysqli_real_escape_string($con, $data["department_id"]);
 
     $count = checkCategoryByName($category_name);
 
     if ($count == 0) {
-        $sql = "INSERT INTO categories(category_name, is_deleted) VALUES(?, 0)";
+        $sql = "INSERT INTO categories(category_name, department_id, is_deleted) VALUES(?, ?, 0)";
         $stmt = mysqli_prepare($con, $sql);
         if ($stmt) {
-            mysqli_stmt_bind_param($stmt, "s", $category_name);
+            mysqli_stmt_bind_param($stmt, "ss", $category_name, $department_id);
             if (mysqli_stmt_execute($stmt)) {
                 mysqli_stmt_close($stmt);
                 return true;

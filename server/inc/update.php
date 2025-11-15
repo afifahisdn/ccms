@@ -10,7 +10,7 @@ include_once "connection.php";
 
 /**
  * "Poor Man's Cron" - Auto-closes complaints.
- * Finds all complaints with 'Resolved' status older than 24 hours
+ * Finds all complaints with 'Resolved' status older than 7 days
  * and updates them to 'Closed'.
  *
  * @return int Number of rows affected, or -1 on error.
@@ -26,7 +26,7 @@ function autoCloseComplaints()
                 date_updated = NOW()
             WHERE 
                 complaint_status = 'Resolved'
-                AND date_resolved <= NOW() - INTERVAL 24 HOUR
+                AND date_resolved <= NOW() - INTERVAL 7 DAY
                 AND is_deleted = 0";
 
     $stmt = mysqli_prepare($con, $sql);

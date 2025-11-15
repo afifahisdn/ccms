@@ -13,13 +13,13 @@ function addCategory(formElement) {
 
     // Validate form fields
     const categoryName = fd.get("category_name") ? fd.get("category_name").trim() : "";
-    const departmentId = fd.get("department_id") ? fd.get("department_id").trim() : ""; // <-- NEW
+    const departmentId = fd.get("department_id") ? fd.get("department_id").trim() : ""; 
 
     if (!categoryName) {
         errorMessage("Please Enter Category Name");
         return;
     }
-    if (!departmentId) { // <-- NEW VALIDATION
+    if (!departmentId) { 
         errorMessage("Please Select a Department");
         return;
     }

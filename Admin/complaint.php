@@ -386,7 +386,7 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                                             <p class="form-control-static text-muted pt-2">
                                                 <em>Cannot be updated. Status is <?php echo htmlspecialchars($complaint_status); ?>.</em>
                                             </p>
-                                        <?php elseif (!$can_edit) : ?>
+                                        <?php elseif (!$can_edit && $logged_in_user_role != 'admin') : ?>
                                             <p class="form-control-static text-muted pt-2">
                                                 <em>Assigned to another staff.</em>
                                             </p>
@@ -428,10 +428,7 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                                     <div class="col-md-5 text-md-end mt-3 mt-md-0">
                                         <label class="form-label d-block d-md-none">&nbsp;</label> <!-- Placeholder for mobile -->
                                         <?php if ($logged_in_user_role == 'admin') : ?>
-                                            <!-- Delete button is disabled if closed/withdrawn -->
-                                            <button type="button" onclick="deleteData(<?php echo $complaint_id; ?>,'complaint', 'complaint_id')" 
-                                                    class="btn btn-danger" 
-                                                    <?php echo ($complaint_status == "Closed" || $complaint_status == "Withdrawn") ? 'disabled' : ''; ?>>
+                                            <button type="button" onclick="deleteData(<?php echo $complaint_id; ?>,'complaint', 'complaint_id')" class="btn btn-danger">
                                                 <i class="fa-solid fa-trash"></i> Delete
                                             </button>
                                         <?php endif; ?>
@@ -445,7 +442,7 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                 <?php
                     } // End while loop
                 } else {
-                    echo "<div class='alert alert-info mt-4'>No complaints found matching your filters.</div>";
+                    echo "<div class='alert alert-info mt-4'>No complaints found.</div>";
                 }
                 ?>
             </div>

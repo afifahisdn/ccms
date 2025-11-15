@@ -281,8 +281,8 @@ function getFilteredComplaints($filters = [], $role = 'admin', $staff_id = 0)
         }
 
         if ($staff_dept_id > 0) {
-            // 2. Add SQL to filter by their department (for unassigned) OR by their ID (for assigned)
-            $sql .= " AND ( (c.assigned_staff_id IS NULL AND cat.department_id = ?) OR (c.assigned_staff_id = ?) )";
+            // 2. Add SQL to filter by their department OR by their ID (for assigned)
+            $sql .= " AND ( (cat.department_id = ?) OR (c.assigned_staff_id = ?) )";
             $params[] = $staff_dept_id;
             $params[] = $staff_id;
             $types .= "ii";

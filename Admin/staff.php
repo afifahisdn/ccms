@@ -164,7 +164,6 @@ include "admin.php";      // Includes session check, sets $logged_in_user_role, 
                                             <th>Email</th>
                                             <th>Phone</th>
                                             <th>NRIC</th>
-                                            <th>Address</th>
                                             <th>Department</th>
                                             <th>Gender</th>
                                             <th>Role</th>
@@ -190,7 +189,6 @@ include "admin.php";      // Includes session check, sets $logged_in_user_role, 
                                                     <td><?php echo htmlspecialchars($row["email"]); ?></td>
                                                     <td><?php echo htmlspecialchars($row["phone"]); ?></td>
                                                     <td><?php echo htmlspecialchars($row["nric"]); ?></td>
-                                                    <td><?php echo htmlspecialchars($row["address"]); ?></td>
                                                     <td>
                                                         <?php
                                                         // Department name is already joined in getAllStaff/getStaffById
@@ -273,10 +271,6 @@ include "admin.php";      // Includes session check, sets $logged_in_user_role, 
                                     <option value="staff" selected>Staff</option>
                                     <option value="admin">Admin</option>
                                 </select>
-                            </div>
-                            <div class="form-group mt-2">
-                                <label for="inputAddress">Address</label>
-                                <input id="inputAddress" type="text" name="address" data-parsley-trigger="change" required="" placeholder="Enter Address" autocomplete="off" class="form-control">
                             </div>
                             <div class="form-group mt-2">
                                 <label for="inputGender">Gender</label>
