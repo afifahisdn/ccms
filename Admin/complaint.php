@@ -357,19 +357,27 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                                 <div class="row align-items-end">
                                     <div class="col-md-3">
                                         <label for="complaint_status_<?php echo $complaint_id; ?>" class="form-label">Update Status:</label>
-                                        <select onchange='confirmStatusChange(this, "<?php echo $complaint_id; ?>", "<?php echo $complaint_status; ?>")' 
-                                                id="complaint_status_<?php echo $complaint_id; ?>" 
-                                                class='form-select' 
-                                                name="complaint_status" 
-                                                <?php echo ($complaint_status == "Closed" || $complaint_status == "Withdrawn") ? 'disabled' : ''; ?>>
-                                            
-                                            <option value="Open" <?php if ($complaint_status == "Open") echo "selected"; ?>>Open</option>
-                                            <option value="In Progress" <?php if ($complaint_status == "In Progress") echo "selected"; ?>>In Progress</option>
-                                            <option value="Resolved" <?php if ($complaint_status == "Resolved") echo "selected"; ?>>Resolved</option>
-                                            <?php if ($logged_in_user_role == 'admin') : ?>
-                                                <option value="Closed" <?php if ($complaint_status == "Closed") echo "selected"; ?>>Closed</option>
-                                            <?php endif; ?>
-                                        </select>
+                                        <?php if ($complaint_status == "Closed" || $complaint_status == "Withdrawn") : ?>
+                                            <!-- Show a message instead of the dropdown -->
+                                            <p class="form-control-static text-muted pt-2">
+                                                <em>Cannot be updated. Status is <?php echo htmlspecialchars($complaint_status); ?>.</em>
+                                            </p>
+                                        <?php else : ?>
+                                            <!-- Show the dropdown -->
+                                                <select onchange='confirmStatusChange(this, "<?php echo $complaint_id; ?>", "<?php echo $complaint_status; ?>")' 
+                                                    id="complaint_status_<?php echo $complaint_id; ?>" 
+                                                    class='form-select' 
+                                                    name="complaint_status" 
+                                                    <?php echo ($complaint_status == "Closed" || $complaint_status == "Withdrawn") ? 'disabled' : ''; ?>>
+                                                
+                                                <option value="Open" <?php if ($complaint_status == "Open") echo "selected"; ?>>Open</option>
+                                                <option value="In Progress" <?php if ($complaint_status == "In Progress") echo "selected"; ?>>In Progress</option>
+                                                <option value="Resolved" <?php if ($complaint_status == "Resolved") echo "selected"; ?>>Resolved</option>
+                                                <?php if ($logged_in_user_role == 'admin') : ?>
+                                                    <option value="Closed" <?php if ($complaint_status == "Closed") echo "selected"; ?>>Closed</option>
+                                                <?php endif; ?>
+                                            </select>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="col-md-3">
                                         <label for="urgency_level_<?php echo $complaint_id; ?>" class="form-label">Urgency:</label>
@@ -446,8 +454,7 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
         background-color: #ddd;
         height: 7px;
         display: flex;
-        margin-bottom: 60px;
-        margin-top: 50px;
+        margin-bottom: 6rem !important;
         border-radius: 5px;
     }
 
