@@ -114,7 +114,7 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                         <?php else : ?>
                             <li class="sidebar-item">
                                 <a href="staff_edit.php?staff_id=<?php echo htmlspecialchars($logged_in_staff_id); ?>" class='sidebar-link'>
-                                    <i class="bi bi-person-fill"></i>
+                                 <i class="bi bi-person-fill"></i>
                                     <span>Profile</span>
                                 </a>
                             </li>
