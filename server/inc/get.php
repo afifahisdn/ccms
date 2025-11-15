@@ -250,7 +250,6 @@ function getComplaintByID($complaint_id)
 
 /**
  * Gets all non-deleted complaints for the admin/staff view, with filtering.
- * Joins with student, dormitory, and categories tables.
  * @param array $filters (e.g., ['status' => 'Open', 'dorm_id' => 1, 'search_query' => 'leak'])
  * @return mysqli_result|false The result set on success, false on failure.
  */
@@ -258,19 +257,20 @@ function getFilteredComplaints($filters = [])
 {
     include "connection.php";
     
-    $sql = "SELECT c.*, s.name as student_name, d.dormitory_name, cat.category_name 
+    $sql = "SELECT c.*, s.name as student_name, d.dormitory_name, cat.category_name,
+                   st.name AS staff_name 
             FROM complaint c 
             LEFT JOIN student s ON c.student_id = s.student_id 
             LEFT JOIN dormitory d ON c.dormitory_id = d.dormitory_id 
             LEFT JOIN categories cat ON c.category_id = cat.category_id
+            LEFT JOIN staff st ON c.assigned_staff_id = st.staff_id
             WHERE c.is_deleted = 0";
     
     $params = [];
     $types = "";
 
-    // --- NEW: General Search Query ---
+    // General Search Query
     if (!empty($filters['search_query'])) {
-        // Search by ID, Title, Student Name, or Room Number
         $sql .= " AND (c.complaint_id = ? OR c.complaint_title LIKE ? OR s.name LIKE ? OR c.room_number LIKE ?)";
         $search_term = "%" . $filters['search_query'] . "%";
         $params[] = $filters['search_query']; // For exact ID match
@@ -280,7 +280,7 @@ function getFilteredComplaints($filters = [])
         $types .= "ssss";
     }
 
-    // --- Specific Filters ---
+    // Specific Filters
     if (!empty($filters['status'])) {
         $sql .= " AND c.complaint_status = ?";
         $params[] = $filters['status'];
