@@ -157,10 +157,6 @@ include_once "server/inc/get.php";
                                         <p><?php echo htmlspecialchars($student_data["room_number"]); ?></p>
                                     </div>
                                     <div class="profile-info-item">
-                                        <strong class="text-info">Address:</strong>
-                                        <p><?php echo htmlspecialchars($student_data["address"]); ?></p>
-                                    </div>
-                                    <div class="profile-info-item">
                                         <strong class="text-info">Gender:</strong>
                                         <p><?php echo ($student_data["gender"] == "1") ? "Male" : "Female"; ?></p>
                                     </div>
@@ -203,10 +199,6 @@ include_once "server/inc/get.php";
                                                 <label for="new_phone" class="form-label">Mobile Number</label>
                                                 <input type="tel" class="form-control" name="new_phone" id="new_phone" placeholder="e.g., 0123456789" value="<?php echo htmlspecialchars($student_data["phone"]); ?>" required pattern="[0-9]{10,11}">
                                                 <small class="form-text text-muted">Enter 10 or 11 digits.</small>
-                                            </div>
-                                            <div class="col-md-12 mb-3">
-                                                <label for="new_address" class="form-label">Address</label>
-                                                <textarea class="form-control" name="new_address" id="new_address" placeholder="Enter full address" rows="3" required><?php echo htmlspecialchars($student_data["address"]); ?></textarea>
                                             </div>
                                             <div class="col-md-6 mb-3">
                                                 <label for="room_number" class="form-label">Room Number</label>

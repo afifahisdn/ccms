@@ -274,7 +274,6 @@ function addStaff($data)
     $email = mysqli_real_escape_string($con, $data["email"]);
     $phone = mysqli_real_escape_string($con, $data["phone"]);
     $nric = mysqli_real_escape_string($con, $data["nric"]);
-    $address = mysqli_real_escape_string($con, $data["address"]);
     $gender = mysqli_real_escape_string($con, $data["gender"]);
     $password = mysqli_real_escape_string($con, $data["password"]);
     $department_id = mysqli_real_escape_string($con, $data["department_id"]);
@@ -293,7 +292,7 @@ function addStaff($data)
 
     if ($count == 0) {
         // $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-        $sql = "INSERT INTO staff(name, email, phone, nric, address, gender, password, is_deleted, department_id, staff_role) 
+        $sql = "INSERT INTO staff(name, email, phone, nric, gender, password, is_deleted, department_id, staff_role) 
                 VALUES(?, ?, ?, ?, ?, ?, ?, 0, ?, ?)";
 
         $stmt = mysqli_prepare($con, $sql);
@@ -305,7 +304,6 @@ function addStaff($data)
                 $email,
                 $phone,
                 $nric,
-                $address,
                 $gender,
                 $password, // Use $hashed_password here
                 $department_id,
@@ -383,7 +381,6 @@ function createStudent($data)
     $name = mysqli_real_escape_string($con, $data['name']);
     $email = mysqli_real_escape_string($con, $data['email']);
     $phone = mysqli_real_escape_string($con, $data['phone']);
-    $address = mysqli_real_escape_string($con, $data['address']);
     $gender = mysqli_real_escape_string($con, $data['gender']);
     $password = mysqli_real_escape_string($con, $data['password']);
     $student_id = mysqli_real_escape_string($con, $data['student_id_number']); // Use student_id_number as the PK
@@ -415,7 +412,7 @@ function createStudent($data)
 
     // $hashed_password = password_hash($password, PASSWORD_DEFAULT);
     // --- UPDATED SQL: Save student_id_number into student_id (PK) ---
-    $insertSql = "INSERT INTO student(student_id, name, email, phone, address, gender, password, room_number, is_deleted) 
+    $insertSql = "INSERT INTO student(student_id, name, email, phone, gender, password, room_number, is_deleted) 
                   VALUES(?, ?, ?, ?, ?, ?, ?, ?, 0)";
 
     $insertStmt = mysqli_prepare($con, $insertSql);
@@ -427,7 +424,6 @@ function createStudent($data)
             $name,
             $email,
             $phone,
-            $address,
             $gender,
             $password, // Use $hashed_password
             $room_number

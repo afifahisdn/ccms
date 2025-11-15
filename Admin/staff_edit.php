@@ -226,11 +226,6 @@ if ($staff_id_to_edit === 0 || ($logged_in_user_role !== 'admin' && $staff_id_to
                                                 <option value="admin" <?php if ($row['staff_role'] == 'admin') echo 'selected'; ?>>Admin</option>
                                             </select>
                                         </div>
-
-                                        <div class="form-group mt-2">
-                                            <label for="inputAddress_<?php echo $staff_id; ?>">Address</label>
-                                            <textarea id="inputAddress_<?php echo $staff_id; ?>" name="address" onchange="updateData(this, '<?php echo $staff_id; ?>', 'address', 'staff', 'staff_id');" required placeholder="Enter Address" autocomplete="off" class="form-control" rows="3"><?php echo htmlspecialchars($row['address']); ?></textarea>
-                                        </div>
                                         <div class="form-group mt-2">
                                             <label for="gender_<?php echo $staff_id; ?>">Gender</label>
                                             <select onchange='updateData(this, "<?php echo $staff_id; ?>","gender", "staff", "staff_id")' id="gender_<?php echo $staff_id; ?>" class="form-control" name="gender">

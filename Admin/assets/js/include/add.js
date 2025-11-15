@@ -147,7 +147,6 @@ function addStudent(formElement) {
     const name = fd.get("name") ? fd.get("name").trim() : "";
     const email = fd.get("email") ? fd.get("email").trim() : "";
     const phone = fd.get("phone") ? fd.get("phone").trim() : "";
-    const address = fd.get("address") ? fd.get("address").trim() : "";
     const gender = fd.get("gender") ? fd.get("gender").trim() : "";
     const password = fd.get("password") ? fd.get("password").trim() : "";
     const conf_password = fd.get("conf_password") ? fd.get("conf_password").trim() : "";
@@ -160,7 +159,6 @@ function addStudent(formElement) {
     if (!student_id_number) { errorMessage("Please Enter Student ID Number."); return; }
     if (!phone) { errorMessage("Please Enter Phone Number."); return; }
     if (!room_number) { errorMessage("Please Enter Room Number."); return; }
-    if (!address) { errorMessage("Please Enter Address."); return; }
     if (!gender) { errorMessage("Please Select Gender."); return; }
     if (!password) { errorMessage("Please Enter Password."); return; }
     if (password !== conf_password) { errorMessage("Passwords do not match."); return; }
@@ -205,7 +203,6 @@ function addStudentAdmin(formElement) {
     const name = fd.get("name") ? fd.get("name").trim() : "";
     const email = fd.get("email") ? fd.get("email").trim() : "";
     const phone = fd.get("phone") ? fd.get("phone").trim() : "";
-    const address = fd.get("address") ? fd.get("address").trim() : "";
     const gender = fd.get("gender") ? fd.get("gender").trim() : "";
     const password = fd.get("password") ? fd.get("password").trim() : "";
     const conf_password = fd.get("conf_password") ? fd.get("conf_password").trim() : "";
@@ -218,7 +215,6 @@ function addStudentAdmin(formElement) {
     if (!student_id_number) { errorMessage("Please Enter Student ID Number."); return; }
     if (!phone) { errorMessage("Please Enter Phone Number."); return; }
     if (!room_number) { errorMessage("Please Enter Room Number."); return; }
-    if (!address) { errorMessage("Please Enter Address."); return; }
     if (!gender) { errorMessage("Please Select Gender."); return; }
     if (!password) { errorMessage("Please Enter Password."); return; }
     if (password !== conf_password) { errorMessage("Passwords do not match."); return; }
@@ -263,7 +259,6 @@ function addStaff(formElement) {
     const email = fd.get("email") ? fd.get("email").trim() : "";
     const phone = fd.get("phone") ? fd.get("phone").trim() : "";
     const nric = fd.get("nric") ? fd.get("nric").trim() : "";
-    const address = fd.get("address") ? fd.get("address").trim() : "";
     const gender = fd.get("gender") ? fd.get("gender").trim() : "";
     const password = fd.get("password") ? fd.get("password").trim() : "";
     const conf_password = fd.get("conf_password") ? fd.get("conf_password").trim() : "";
@@ -275,7 +270,6 @@ function addStaff(formElement) {
     if (!email) { errorMessage("Please Enter Email."); return; }
     if (!phone) { errorMessage("Please Enter Phone Number."); return; }
     if (!nric) { errorMessage("Please Enter NRIC."); return; }
-    if (!address) { errorMessage("Please Enter Address."); return; }
     if (!department_id) { errorMessage("Please Select Department."); return; }
     if (!staff_role) { errorMessage("Please Select Staff Role."); return; }
     if (!password) { errorMessage("Please Enter Password."); return; }

@@ -145,11 +145,6 @@ include "checkAdmin.php"; // Ensure only 'admin' role can access
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="inputAddress">Address (Permanent):</label>
-                                        <textarea id="inputAddress" name="address" data-parsley-trigger="change" required="" placeholder="Enter Address" autocomplete="off" class='form-control' rows=3></textarea>
-                                    </div>
-
-                                    <div class="form-group">
                                         <label for="inputGender">Gender:</label>
                                         <select class="form-select" name="gender" id="gender" aria-label="Default select example">
                                             <option value="1" selected>Male</option>

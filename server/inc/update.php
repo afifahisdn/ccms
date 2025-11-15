@@ -318,13 +318,12 @@ function updateStudentProfile($jsonData)
     $student_id = mysqli_real_escape_string($con, $data['student_id']); // This is the PK (VARCHAR)
     $name = mysqli_real_escape_string($con, $data['new_name'] ?? '');
     $phone = mysqli_real_escape_string($con, $data['new_phone'] ?? '');
-    $address = mysqli_real_escape_string($con, $data['new_address'] ?? '');
     $gender = mysqli_real_escape_string($con, $data['new_gender'] ?? '');
     $room_number = mysqli_real_escape_string($con, $data['room_number'] ?? '');
     // $student_id_number is NO LONGER received, as it's non-editable.
 
     // Basic validation
-    if (empty($name) || empty($phone) || empty($address) || empty($gender) || empty($room_number)) {
+    if (empty($name) || empty($phone) || empty($gender) || empty($room_number)) {
         echo json_encode(['status' => 'error', 'message' => 'All fields are required.']);
         return;
     }
@@ -338,11 +337,11 @@ function updateStudentProfile($jsonData)
     // But this function doesn't update email (that's changeStudentEmail).
     // So, no duplicate check is needed here.
 
-    $sql = "UPDATE student SET name = ?, phone = ?, address = ?, gender = ?, room_number = ? WHERE student_id = ?";
+    $sql = "UPDATE student SET name = ?, phone = ?, gender = ?, room_number = ? WHERE student_id = ?";
     $stmt = $con->prepare($sql);
 
     if ($stmt) {
-        $stmt->bind_param("ssssss", $name, $phone, $address, $gender, $room_number, $student_id);
+        $stmt->bind_param("ssssss", $name, $phone, $gender, $room_number, $student_id);
 
         if ($stmt->execute()) {
             echo json_encode(['status' => 'success']);

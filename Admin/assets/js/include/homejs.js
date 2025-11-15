@@ -239,12 +239,11 @@ function checkCurrentStudentEmail(email, student_id) {
 function updateStudentProfile(student_id) {
     var name = document.getElementById('new_name').value;
     var phone = document.getElementById('new_phone').value;
-    var address = document.getElementById('new_address').value;
     var gender = document.getElementById('new_gender').value;
     var room_number = document.getElementById('room_number').value;
 
-    if (name.trim() === "" || phone.trim() === "" || address.trim() === "" || room_number.trim() === "") {
-        errorMessage("Please fill out all fields: Name, Phone, Address, and Room Number.");
+    if (name.trim() === "" || phone.trim() === "" || room_number.trim() === "") {
+        errorMessage("Please fill out all fields: Name, Phone, and Room Number.");
         return;
     }
     if (typeof validateStudentIDNumber === 'function' && !validateStudentIDNumber(student_id, false)) { /* Only validate format if function exists */ }
@@ -254,7 +253,6 @@ function updateStudentProfile(student_id) {
         student_id: student_id,
         new_name: name,
         new_phone: phone,
-        new_address: address,
         new_gender: gender,
         room_number: room_number
     };

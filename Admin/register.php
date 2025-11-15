@@ -45,11 +45,6 @@ include 'pages/header.php'; // Includes assets
                     <label for="room_number" class="form-label">Room Number</label>
                     <input type="text" class="form-control" name="room_number" id="room_number" placeholder="e.g., A-101" required>
                 </div>
-
-                <div class="mb-3">
-                    <label for="address" class="form-label">Address (Permanent)</label>
-                    <textarea class="form-control address-field" name="address" id="address" aria-describedby="addressHelp" rows="3" required></textarea>
-                </div>
                 <div class="mb-3">
                     <label for="gender" class="form-label">Gender</label>
                     <select class="form-control" name="gender" id="gender" aria-label="Default select example" required>
@@ -137,11 +132,6 @@ include 'pages/header.php'; // Includes assets
         border: 1px solid #ccc;
         border-radius: 8px;
         box-sizing: border-box;
-    }
-
-    .address-field {
-        min-height: 80px;
-        /* Adjusted height */
     }
 
     .btn-primary {
