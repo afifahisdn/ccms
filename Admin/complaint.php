@@ -9,37 +9,62 @@
 */
 
 include "pages/header.php"; // Includes assets, connection, get
-include "admin.php";      // Includes session check, sets $logged_in_user_role, $logged_in_staff_id
+include "admin.php";      // Includes session check, gets $logged_in_user_role, $logged_in_staff_id
 
-// --- POOR MAN'S CRON JOB ---
-autoCloseComplaints();
-// --- END CRON JOB ---
+// Get the logged-in user's role (already defined in admin.php)
+// $logged_in_user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '';
 
-// --- Process Filters ---
-$filters = [];
-$search_query_val = ""; // For populating the search box
-
-// General Search Query
-if (!empty($_GET['search_query'])) {
-    $filters['search_query'] = mysqli_real_escape_string($con, $_GET['search_query']);
-    $search_query_val = $filters['search_query'];
-}
-// Filter by Status
-if (!empty($_GET['status'])) {
-    $filters['status'] = mysqli_real_escape_string($con, $_GET['status']);
-}
-// Filter by Category
-if (!empty($_GET['cat_id'])) {
-    $filters['cat_id'] = (int)$_GET['cat_id'];
-}
-// Filter by Dormitory
-if (!empty($_GET['dorm_id'])) {
-    $filters['dorm_id'] = (int)$_GET['dorm_id'];
+// Process search query
+$search_query = "";
+if (isset($_GET['search']) && !empty($_GET['search'])) {
+    // Basic validation to check if it's a number
+    if (ctype_digit($_GET['search'])) {
+        $search_query = mysqli_real_escape_string($con, $_GET['search']);
+    } else {
+        // Optional: Show an error message if the search is not numeric
+        // This would require iziToast to be loaded, which it is in header.php
+        echo "<script>document.addEventListener('DOMContentLoaded', function() { errorMessage('Search query must be a numeric Complaint ID.'); });</script>";
+    }
 }
 
-// Get filtered data
-$getall = getFilteredComplaints($filters); // This function is from get.php
-$show_clear_button = !empty($filters); // Show "Clear" if any filters are set
+// Function to get filtered complaint data (local to this page)
+function getFilteredComplaints($search_query, $con)
+{
+    // Updated SQL Query: Join complaint with student and dormitory
+    $sql = "SELECT c.*, s.name as student_name, d.dormitory_name 
+            FROM complaint c
+            LEFT JOIN student s ON s.student_id = c.student_id 
+            LEFT JOIN dormitory d ON d.dormitory_id = c.dormitory_id
+            WHERE c.is_deleted = 0 
+            AND c.complaint_id LIKE ?
+            ORDER BY c.created_at DESC";
+
+    $stmt = mysqli_prepare($con, $sql);
+    if ($stmt) {
+        $search_param = "%$search_query%";
+        mysqli_stmt_bind_param($stmt, "s", $search_param);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        mysqli_stmt_close($stmt);
+        return $result;
+    } else {
+        error_log("Error preparing getFilteredComplaints statement: " . mysqli_error($con));
+        return false;
+    }
+}
+
+// Function to get all complaint data (local to this page, uses function from get.php)
+// We use the one from get.php directly: getAllComplaints()
+
+
+// Get data based on search or all data if no search query
+if (!empty($search_query)) {
+    $getall = getFilteredComplaints($search_query, $con);
+    $show_back_button = true;
+} else {
+    $getall = getAllComplaints(); // Use the existing function from get.php
+    $show_back_button = false;
+}
 ?>
 
 <body>
@@ -96,12 +121,6 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                                     <span>Departments</span>
                                 </a>
                             </li>
-                            <li class="sidebar-item">
-                                <a href="categories.php" class='sidebar-link'>
-                                    <i class="bi bi-tags-fill"></i>
-                                    <span>Categories</span>
-                                </a>
-                            </li>
                         <?php endif; ?>
 
                         <?php if ($logged_in_user_role == "admin") : ?>
@@ -114,7 +133,7 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                         <?php else : ?>
                             <li class="sidebar-item">
                                 <a href="staff_edit.php?staff_id=<?php echo htmlspecialchars($logged_in_staff_id); ?>" class='sidebar-link'>
-                                 <i class="bi bi-person-fill"></i>
+                                    <i class="bi bi-person-fill"></i>
                                     <span>Profile</span>
                                 </a>
                             </li>
@@ -159,7 +178,7 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
             </div>
 
             <div class="row">
-                <div class="col-lg-7">
+                <div class="col-lg-9">
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
@@ -168,92 +187,28 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                     </nav>
                 </div>
                 <?php if ($logged_in_user_role == 'admin') : ?>
-                    <div class="col-lg-5 text-lg-end">
-                        <a href="categories.php" class="btn btn-info">
-                            <i class="bi bi-tags-fill"></i> Manage Categories
-                        </a>
-                        <a href="add_complaint.php" class="btn btn-primary ms-2">
-                            <i class="bi bi-plus-circle"></i> Add New Complaint
-                        </a>
+                    <div class="col-lg-3 text-lg-end"> <!-- Aligned button to the right on large screens -->
+                        <a href="add_complaint.php" class="btn btn-primary"> Add New Complaint</a>
                     </div>
                 <?php endif; ?>
             </div>
-
             <div class="page-content">
-                <div class="card">
-                    <div class="card-body">
-                        <form action="complaint.php" method="GET">
-                            <!-- Top Row: Search Bar -->
-                            <div class="row mb-3 text-lg-end">
-                                <div class="col-3">
-                                    <input class="form-control" type="search" name="search_query" id="search_query" 
-                                           placeholder="Search" 
-                                           value="<?php echo htmlspecialchars($search_query_val); ?>">
-                                </div>
-                            </div>
-                            
-                            <!-- Bottom Row: Filters & Buttons -->
-                            <div class="row g-3 align-items-end">
-                                <!-- Status Filter -->
-                                <div class="col-md-3">
-                                    <select name="status" id="status" class="form-select">
-                                        <option value="">All Statuses</option>
-                                        <option value="Open" <?php if (($filters['status'] ?? '') == 'Open') echo 'selected'; ?>>Open</option>
-                                        <option value="In Progress" <?php if (($filters['status'] ?? '') == 'In Progress') echo 'selected'; ?>>In Progress</option>
-                                        <option value="Resolved" <?php if (($filters['status'] ?? '') == 'Resolved') echo 'selected'; ?>>Resolved</option>
-                                        <option value="Closed" <?php if (($filters['status'] ?? '') == 'Closed') echo 'selected'; ?>>Closed</option>
-                                        <option value="Withdrawn" <?php if (($filters['status'] ?? '') == 'Withdrawn') echo 'selected'; ?>>Withdrawn</option>
-                                    </select>
-                                </div>
-                                <!-- Category Filter -->
-                                <div class="col-md-3">
-                                    <select name="cat_id" id="cat_id" class="form-select">
-                                        <option value="">All Categories</option>
-                                        <?php
-                                        $cats = getAllCategories();
-                                        if ($cats) {
-                                            while ($cat_row = mysqli_fetch_assoc($cats)) {
-                                                $selected = (($filters['cat_id'] ?? '') == $cat_row['category_id']) ? 'selected' : '';
-                                                echo "<option value=\"{$cat_row['category_id']}\" $selected>" . htmlspecialchars($cat_row['category_name']) . "</option>";
-                                            }
-                                        }
-                                        ?>
-                                    </select>
-                                </div>
-                                <!-- Dormitory Filter -->
-                                <div class="col-md-3">
-                                    <select name="dorm_id" id="dorm_id" class="form-select">
-                                        <option value="">All Dormitories</option>
-                                        <?php
-                                        $dorms = getAllDormitory();
-                                        if ($dorms) {
-                                            while ($dorm_row = mysqli_fetch_assoc($dorms)) {
-                                                $selected = (($filters['dorm_id'] ?? '') == $dorm_row['dormitory_id']) ? 'selected' : '';
-                                                echo "<option value=\"{$dorm_row['dormitory_id']}\" $selected>" . htmlspecialchars($dorm_row['dormitory_name']) . "</option>";
-                                            }
-                                        }
-                                        ?>
-                                    </select>
-                                </div>
-                                <!-- Buttons -->
-                                <div class="col-md-3">
-                                    <button class="btn btn-primary" type="submit"><i class="bi bi-filter"></i> Filter</button>
-                                    <?php if ($show_clear_button) : ?>
-                                        <a href="complaint.php" class="btn btn-secondary ms-2"><i class="bi bi-x-circle"></i> Clear</a>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
+                <div class="row mb-3">
+                    <div class="col-lg-6">
+                        <form action="complaint.php" method="GET" class="d-flex">
+                            <input class="form-control me-2" type="search" name="search" placeholder="Search by Complaint ID" aria-label="Search" value="<?php echo htmlspecialchars($search_query); ?>">
+                            <button class="btn btn-outline-primary" type="submit">Search</button>
+                            <?php if ($show_back_button) : ?>
+                                <a href="complaint.php" class="btn btn-outline-secondary ms-2">Show All</a>
+                            <?php endif; ?>
                         </form>
                     </div>
                 </div>
-                
-                <!-- === COMPLAINT LIST === -->
                 <?php
                 if ($getall && mysqli_num_rows($getall) > 0) {
                     while ($row = mysqli_fetch_assoc($getall)) {
                         $complaint_id = $row["complaint_id"];
-                        $complaint_status = $row["complaint_status"]; // This is a string
-                        $current_urgency = $row["urgency_level"];
+                        $complaint_status = (int)$row["complaint_status"];
                 ?>
                         <article class="card mt-4 shadow-sm">
                             <header class="card-header text-white bg-dark d-flex justify-content-between align-items-center">
@@ -261,6 +216,7 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                                 <span>Submitted: <?php echo date("Y-m-d H:i", strtotime($row["created_at"])); ?></span>
                             </header>
                             <div class="card-body mt-3">
+                                
                                 <article class="card mb-4">
                                     <div class="card-body">
                                         <div class="row mb-3">
@@ -288,16 +244,17 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                                         <hr>
                                         <div class="row">
                                             <div class="col-md-3"> <strong>Category:</strong>
-                                                <br><?php echo htmlspecialchars(ucfirst($row["category_name"] ?? 'N/A')); ?>
+                                                <br><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $row["complaint_category"]))); ?>
+                                            </div>
+                                            <div class="col-md-3"> <strong>Urgency:</strong>
+                                                <br><span class="urgency-<?php echo strtolower(htmlspecialchars($row['urgency_level'])); ?>"><?php echo htmlspecialchars(ucfirst($row["urgency_level"])); ?></span>
                                             </div>
                                             <div class="col-md-3"> <strong>Last Updated:</strong>
                                                 <br><?php echo date("Y-m-d H:i", strtotime($row["date_updated"])); ?>
                                             </div>
                                             <div class="col-md-3"> <strong>Assigned Staff:</strong>
                                                 <br><?php echo htmlspecialchars($row["assigned_staff_id"] ?? 'Not Assigned'); ?>
-                                            </div>
-                                            <div class="col-md-3"> <strong>Current Status:</strong>
-                                                <br><span class="status-<?php echo strtolower(str_replace(' ', '', $complaint_status)); ?>"><?php echo htmlspecialchars($complaint_status); ?></span>
+                                                <!-- You might want to join staff table to get name -->
                                             </div>
                                         </div>
                                         <?php if (!empty($row["photo"])) : ?>
@@ -319,84 +276,47 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                                     </div>
                                 </article>
 
-                                <!-- Status Tracking Bar (Uses ENUM strings) -->
+                                <!-- Status Tracking Bar -->
                                 <div class="track mb-5">
-                                    <?php
-                                    $isOpen = in_array($complaint_status, ['Open', 'In Progress', 'Resolved', 'Closed']);
-                                    $isInProgress = in_array($complaint_status, ['In Progress', 'Resolved', 'Closed']);
-                                    $isResolved = in_array($complaint_status, ['Resolved', 'Closed']);
-                                    $isClosed = ($complaint_status == 'Closed');
-                                    $isWithdrawn = ($complaint_status == 'Withdrawn');
-
-                                    if ($isWithdrawn) {
-                                        echo "<p class='text-danger w-100 text-center p-3'><strong>Complaint Withdrawn by Student.</strong></p>";
-                                    } else {
-                                    ?>
-                                        <div class="step <?php if ($isOpen) echo "active open"; ?>">
-                                            <span class="icon"> <i class="fa fa-folder-open"></i> </span>
-                                            <span class="text">Open</span>
-                                        </div>
-                                        <div class="step <?php if ($isInProgress) echo "active inprogress"; ?>">
-                                            <span class="icon"> <i class="fa fa-cogs"></i> </span>
-                                            <span class="text">In Progress</span>
-                                        </div>
-                                        <div class="step <?php if ($isResolved) echo "active resolved"; ?>">
-                                            <span class="icon"> <i class="fa fa-check-circle"></i> </span>
-                                            <span class="text">Resolved</span>
-                                        </div>
-                                        <div class="step <?php if ($isClosed) echo "active closed"; ?>">
-                                            <span class="icon"> <i class="fa fa-archive"></i> </span>
-                                            <span class="text">Closed</span>
-                                        </div>
-                                    <?php } ?>
+                                    <div class="step <?php if ($complaint_status >= 1) echo "active open"; ?>">
+                                        <span class="icon"> <i class="fa fa-folder-open"></i> </span>
+                                        <span class="text">Open</span>
+                                    </div>
+                                    <div class="step <?php if ($complaint_status >= 2) echo "active inprogress"; ?>">
+                                        <span class="icon"> <i class="fa fa-cogs"></i> </span>
+                                        <span class="text">In Progress</span>
+                                    </div>
+                                    <div class="step <?php if ($complaint_status >= 3) echo "active resolved"; ?>">
+                                        <span class="icon"> <i class="fa fa-check-circle"></i> </span>
+                                        <span class="text">Resolved</span>
+                                    </div>
+                                    <div class="step <?php if ($complaint_status >= 4) echo "active closed"; ?>">
+                                        <span class="icon"> <i class="fa fa-archive"></i> </span>
+                                        <span class="text">Closed</span>
+                                    </div>
                                 </div>
 
                                 <hr>
-                                <!-- Action Row (Uses ENUM strings) -->
+                                <!-- Action Row -->
                                 <div class="row align-items-end">
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <label for="complaint_status_<?php echo $complaint_id; ?>" class="form-label">Update Status:</label>
-                                        <?php if ($complaint_status == "Closed" || $complaint_status == "Withdrawn") : ?>
-                                            <!-- Show a message instead of the dropdown -->
-                                            <p class="form-control-static text-muted pt-2">
-                                                <em>Cannot be updated. Status is <?php echo htmlspecialchars($complaint_status); ?>.</em>
-                                            </p>
-                                        <?php else : ?>
-                                            <!-- Show the dropdown -->
-                                                <select onchange='confirmStatusChange(this, "<?php echo $complaint_id; ?>", "<?php echo $complaint_status; ?>")' 
-                                                    id="complaint_status_<?php echo $complaint_id; ?>" 
-                                                    class='form-select' 
-                                                    name="complaint_status" 
-                                                    <?php echo ($complaint_status == "Closed" || $complaint_status == "Withdrawn") ? 'disabled' : ''; ?>>
-                                                
-                                                <option value="Open" <?php if ($complaint_status == "Open") echo "selected"; ?>>Open</option>
-                                                <option value="In Progress" <?php if ($complaint_status == "In Progress") echo "selected"; ?>>In Progress</option>
-                                                <option value="Resolved" <?php if ($complaint_status == "Resolved") echo "selected"; ?>>Resolved</option>
-                                                <?php if ($logged_in_user_role == 'admin') : ?>
-                                                    <option value="Closed" <?php if ($complaint_status == "Closed") echo "selected"; ?>>Closed</option>
-                                                <?php endif; ?>
-                                            </select>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label for="urgency_level_<?php echo $complaint_id; ?>" class="form-label">Urgency:</label>
-                                        <select onchange='updateData(this, "<?php echo $complaint_id; ?>","urgency_level", "complaint", "complaint_id")' 
-                                                id="urgency_level_<?php echo $complaint_id; ?>" 
-                                                class='form-select' 
-                                                name="urgency_level"
-                                                <?php echo ($complaint_status == "Closed" || $complaint_status == "Withdrawn") ? 'disabled' : ''; ?>>
-                                            <option value="low" <?php if ($current_urgency == "low") echo "selected"; ?>>Low</option>
-                                            <option value="medium" <?php if ($current_urgency == "medium") echo "selected"; ?>>Medium</option>
-                                            <option value="high" <?php if ($current_urgency == "high") echo "selected"; ?>>High</option>
-                                            <option value="critical" <?php if ($current_urgency == "critical") echo "selected"; ?>>Critical</option>
+                                        <select onchange='updateData(this, "<?php echo $complaint_id; ?>","complaint_status", "complaint", "complaint_id")' id="complaint_status_<?php echo $complaint_id; ?>" class='form-select' name="complaint_status" <?php echo ($complaint_status == 4) ? 'disabled' : ''; ?>>
+                                            <option value="1" <?php if ($complaint_status == 1) echo "selected"; ?>>Open</option>
+                                            <option value="2" <?php if ($complaint_status == 2) echo "selected"; ?>>In Progress</option>
+                                            <option value="3" <?php if ($complaint_status == 3) echo "selected"; ?>>Resolved</option>
+                                            <option value="4" <?php if ($complaint_status == 4) echo "selected"; ?>>Closed</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                                        <label class="form-label d-block d-md-none">&nbsp;</label>
-                                        <?php if ($logged_in_user_role == 'admin') : ?>
+                                    <?php if ($logged_in_user_role == 'admin') : ?>
+                                        <div class="col-md-4">
+                                            <label class="form-label d-block">&nbsp;</label>
                                             <button type="button" onclick="deleteData(<?php echo $complaint_id; ?>,'complaint', 'complaint_id')" class="btn btn-danger"> <i class="fa-solid fa-trash"></i> Delete</button>
-                                        <?php endif; ?>
-                                        <a href="get_complaint_report.php?complaint_id=<?php echo $complaint_id; ?>" target="_blank" class="btn btn-info py-2 px-4 text-white ms-2"><i class="fa-solid fa-print"></i> Print</a>
+                                        </div>
+                                    <?php endif; ?>
+                                    <div class="col-md-<?php echo ($logged_in_user_role == 'admin') ? '4' : '8'; ?> text-md-end">
+                                        <label class="form-label d-block">&nbsp;</label>
+                                        <a href="get_complaint_report.php?complaint_id=<?php echo $complaint_id; ?>" target="_blank" class="btn btn-info py-2 px-4 text-white"><i class="fa-solid fa-print"></i> Print</a>
                                     </div>
                                 </div>
                             </div>
@@ -404,7 +324,7 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                 <?php
                     } // End while loop
                 } else {
-                    echo "<div class='alert alert-info mt-4'>No complaints found matching your filters.</div>";
+                    echo "<div class='alert alert-info mt-4'>No complaints found.</div>";
                 }
                 ?>
             </div>
@@ -416,6 +336,9 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
     <!-- JS Includes -->
     <script src="assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
     <script src="assets/js/bootstrap.bundle.min.js"></script>
+    <!-- Apexcharts not needed for this page -->
+    <!-- <script src="assets/vendors/apexcharts/apexcharts.js"></script> -->
+    <script src="assets.js"></script> <!-- This should be in header.php -->
     <script src="assets/js/main.js"></script>
 </body>
 <style>
@@ -435,17 +358,30 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
     }
 
     /* Urgency Colors */
-    .urgency-low { color: #28a745; font-weight: bold; }
-    .urgency-medium { color: #ffc107; font-weight: bold; }
-    .urgency-high { color: #fd7e14; font-weight: bold; }
-    .urgency-critical { color: #dc3545; font-weight: bold; }
+    .urgency-low {
+        color: #28a745;
+        font-weight: bold;
+    }
 
-    /* Status String Colors */
-    .status-open { color: #007bff; font-weight: bold; }
-    .status-inprogress { color: #ffc107; font-weight: bold; }
-    .status-resolved { color: #28a745; font-weight: bold; }
-    .status-closed { color: #6c757d; font-weight: bold; }
-    .status-withdrawn { color: #dc3545; font-weight: bold; }
+    /* Green */
+    .urgency-medium {
+        color: #ffc107;
+        font-weight: bold;
+    }
+
+    /* Yellow */
+    .urgency-high {
+        color: #fd7e14;
+        font-weight: bold;
+    }
+
+    /* Orange */
+    .urgency-critical {
+        color: #dc3545;
+        font-weight: bold;
+    }
+
+    /* Red */
 
     /* Tracking Bar */
     .track {
@@ -453,7 +389,8 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
         background-color: #ddd;
         height: 7px;
         display: flex;
-        margin-bottom: 6rem !important;
+        margin-bottom: 60px;
+        margin-top: 50px;
         border-radius: 5px;
     }
 
@@ -491,6 +428,7 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
         border-radius: 100%;
         background: #ddd;
         color: #fff;
+        /* Icon color */
         z-index: 2;
         margin-bottom: 5px;
     }
@@ -504,6 +442,11 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
     }
 
     /* Active State */
+    .track .step.active .icon {
+        background: #0d6efd;
+        /* Bootstrap primary */
+    }
+
     .track .step.active .text {
         font-weight: 600;
         color: #000;
@@ -513,7 +456,7 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
         background: #0d6efd;
     }
     
-    /* Specific Status Colors for Bar */
+    /* Specific Colors for Active States */
     .track .step.active.open .icon,
     .track .step.active.open::before {
         background: #007bff; /* Blue */
@@ -535,6 +478,13 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
     .track .step.active.open ~ .step::before { background: #ddd; }
     .track .step.active.inprogress ~ .step::before { background: #ddd; }
     .track .step.active.resolved ~ .step::before { background: #ddd; }
+    
+    /* Active line coloring */
+    .track .step.active.open::before { background: #007bff; }
+    .track .step.active.inprogress::before { background: #ffc107; }
+    .track .step.active.resolved::before { background: #28a745; }
+    .track .step.active.closed::before { background: #6c757d; }
+
 
     .text-md-end {
         text-align: right !important;
@@ -546,16 +496,10 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
         visibility: hidden;
     }
     
-    .align-items-end .col-md-4:first-child .form-label,
-    .align-items-end .col-md-3:first-child .form-label,
-    .align-items-end .col-md-3:nth-child(2) .form-label {
+    /* Override for the first label */
+    .align-items-end .col-md-4:first-child .form-label {
         visibility: visible;
     }
-
-    /* Align buttons in the new filter bar */
-    .g-3.align-items-end .col-md-3 {
-        display: flex;
-        align-items: flex-end;
-    }
+    
 </style>
 </html>
