@@ -3,7 +3,6 @@
 * update.php
 *
 * Contains functions for UPDATING data in the CCMS database.
-* and new business logic.
 */
 
 // Use include_once for safety
@@ -20,8 +19,7 @@ function autoCloseComplaints()
 {
     include 'connection.php';
     
-    // We update `date_updated` and `date_resolved`
-    // `date_resolved` is set when status becomes 'Resolved'
+    // date_resolved is set when status becomes 'Resolved'
     $sql = "UPDATE complaint 
             SET 
                 complaint_status = 'Closed',
@@ -37,7 +35,7 @@ function autoCloseComplaints()
         if (mysqli_stmt_execute($stmt)) {
             $affected_rows = mysqli_stmt_affected_rows($stmt);
             mysqli_stmt_close($stmt);
-            error_log("Auto-close cron: $affected_rows complaints closed.");
+            // Log if you want: error_log("Auto-close cron: $affected_rows complaints closed.");
             return $affected_rows;
         } else {
             error_log("Error executing autoCloseComplaints: " . mysqli_stmt_error($stmt));
@@ -53,12 +51,14 @@ function autoCloseComplaints()
 
 /**
  * Generic function to update a single field in any table.
- * Now with added logic for complaint timestamps.
+ * Now with auto-assign logic for staff.
  *
  * @param array $data Asssociative array from form post.
+ * @param int $staff_id The ID of the staff member making the change.
+ * @param string $role The role of the user ('admin' or 'staff').
  * @return bool True on success, false on failure.
  */
-function updateDataTable($data)
+function updateDataTable($data, $staff_id, $role)
 {
     include 'connection.php';
 
@@ -68,7 +68,6 @@ function updateDataTable($data)
     $value = mysqli_real_escape_string($con, $data['value']);
     $table = mysqli_real_escape_string($con, $data['table']);
 
-    // Ensure table/field names are valid
     if (
         !preg_match('/^[a-zA-Z0-9_]+$/', $id_fild) ||
         !preg_match('/^[a-zA-Z0-9_]+$/', $field) ||
@@ -90,23 +89,36 @@ function updateDataTable($data)
 
     // 2. If updating 'complaint_status' specifically
     if ($table == 'complaint' && $field == 'complaint_status') {
-        // Use the new ENUM string values
         if ($value == 'Resolved' || $value == 'Closed') {
             $additional_sql .= ", date_resolved = NOW()";
         } else {
-            // If status is set back to Open, In Progress, or Withdrawn, clear the resolved date
             $additional_sql .= ", date_resolved = NULL";
         }
     }
+
+    // 3. --- Auto-Assign Logic ---
+    if ($table == 'complaint' && $role == 'staff' && $staff_id > 0) {
+        // Check if the complaint is currently unassigned
+        $check_sql = "SELECT assigned_staff_id FROM complaint WHERE $id_fild = ?";
+        $check_stmt = mysqli_prepare($con, $check_sql);
+        mysqli_stmt_bind_param($check_stmt, "s", $id);
+        mysqli_stmt_execute($check_stmt);
+        $check_result = mysqli_stmt_get_result($check_stmt);
+        $complaint_row = mysqli_fetch_assoc($check_result);
+        mysqli_stmt_close($check_stmt);
+
+        // If it's unassigned, assign it to this staff member
+        if ($complaint_row && $complaint_row['assigned_staff_id'] === NULL) {
+            $additional_sql .= ", assigned_staff_id = " . (int)$staff_id;
+        }
+    }
     
-    // 3. Determine param type for ID
+    // 4. Determine param type for ID
     if ($id_fild == 'student_id') {
         $param_types = "ss"; // $value (s), $id (s)
     } elseif (in_array($id_fild, ['complaint_id', 'staff_id', 'department_id', 'dormitory_id', 'category_id', 'feedback_id'])) {
         $param_types = "si"; // $value (s), $id (i)
     }
-
-    // --- End Special Logic ---
 
     $sql = "UPDATE `$table` SET `$field` = ? $additional_sql WHERE `$id_fild` = ?";
     $stmt = mysqli_prepare($con, $sql);
@@ -130,10 +142,6 @@ function updateDataTable($data)
 
 /**
  * Updates an image field path in a table.
- *
- * @param array $data Asssociative array from form post.
- * @param string $img_path The relative path of the uploaded image.
- * @return bool True on success, false on failure.
  */
 function editImages($data, $img_path)
 {
@@ -158,8 +166,7 @@ function editImages($data, $img_path)
     $stmt = mysqli_prepare($con, $sql);
 
     if ($stmt) {
-        // Assume ID is an integer for this generic function, may need adjustment
-        mysqli_stmt_bind_param($stmt, "si", $img_path_sanitized, $id); 
+        mysqli_stmt_bind_param($stmt, "ss", $img_path_sanitized, $id); // Assume ID is string-like
         if (mysqli_stmt_execute($stmt)) {
             mysqli_stmt_close($stmt);
             return true;
@@ -176,9 +183,6 @@ function editImages($data, $img_path)
 
 /**
  * Updates a single field in the settings table.
- *
- * @param array $data Asssociative array from form post.
- * @return bool True on success, false on failure.
  */
 function changePageSettings($data)
 {
@@ -213,10 +217,6 @@ function changePageSettings($data)
 
 /**
  * Updates an image field path in the settings table.
- *
- * @param array $data Asssociative array from form post.
- * @param string $img_path The relative path of the uploaded image.
- * @return bool True on success, false on failure.
  */
 function editSettingImage($data, $img_path)
 {
@@ -251,6 +251,7 @@ function editSettingImage($data, $img_path)
 
 /**
  * Updates the status of a complaint (using new ENUM values).
+ * This function is for STUDENT actions (Withdraw, Approve, Re-Open).
  *
  * @param array $data Asssociative array from form post.
  * @return string 'success' or 'error'.
@@ -298,6 +299,7 @@ function updateComplaintStatus($data)
 
 /**
  * Updates student profile details.
+ * (Address and Student ID Number are REMOVED).
  *
  * @param string $jsonData JSON string containing student data.
  * @return void Echos JSON response.
@@ -318,9 +320,10 @@ function updateStudentProfile($jsonData)
     $student_id = mysqli_real_escape_string($con, $data['student_id']); // This is the PK (VARCHAR)
     $name = mysqli_real_escape_string($con, $data['new_name'] ?? '');
     $phone = mysqli_real_escape_string($con, $data['new_phone'] ?? '');
+    // $address = mysqli_real_escape_string($con, $data['new_address'] ?? ''); // REMOVED
     $gender = mysqli_real_escape_string($con, $data['new_gender'] ?? '');
     $room_number = mysqli_real_escape_string($con, $data['room_number'] ?? '');
-    // $student_id_number is NO LONGER received, as it's non-editable.
+    // $student_id_number is NO LONGER received
 
     // Basic validation
     if (empty($name) || empty($phone) || empty($gender) || empty($room_number)) {
@@ -331,17 +334,15 @@ function updateStudentProfile($jsonData)
         echo json_encode(['status' => 'error', 'message' => 'Invalid gender.']);
         return;
     }
-    
-    // We don't check for duplicate Student ID because it's the PK and cannot be changed.
-    // We only need to check if the EMAIL is being changed, and if so, if it's a duplicate.
-    // But this function doesn't update email (that's changeStudentEmail).
-    // So, no duplicate check is needed here.
 
+    // No duplicate check needed since email/student_id are not editable here
+    
     $sql = "UPDATE student SET name = ?, phone = ?, gender = ?, room_number = ? WHERE student_id = ?";
     $stmt = $con->prepare($sql);
 
     if ($stmt) {
-        $stmt->bind_param("ssssss", $name, $phone, $gender, $room_number, $student_id);
+        // s(name), s(phone), s(gender), s(room_number), s(student_id)
+        $stmt->bind_param("sssss", $name, $phone, $gender, $room_number, $student_id);
 
         if ($stmt->execute()) {
             echo json_encode(['status' => 'success']);

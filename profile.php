@@ -167,7 +167,6 @@ include_once "server/inc/get.php";
                                 <div class="p-4 bg-white rounded shadow-sm">
                                     <div class="d-flex justify-content-between align-items-center mb-4">
                                         <h4 class="text-primary">Profile Settings</h4>
-                                        <!-- Delete Account Button Removed -->
                                     </div>
 
                                     <div class="mb-4 text-center">

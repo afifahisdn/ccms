@@ -30,7 +30,6 @@ include 'pages/header.php'; // Includes assets
                     <input type="email" class="form-control" name="email" id="email" aria-describedby="emailHelp" placeholder="e.g., yourname@college.edu" required>
                 </div>
 
-                <!-- UPDATED: This is the new Primary Key -->
                 <div class="mb-3">
                     <label for="student_id_number" class="form-label">Student ID Number</label>
                     <input type="text" class="form-control" name="student_id_number" id="student_id_number" placeholder="e.g., STU1234567" required>

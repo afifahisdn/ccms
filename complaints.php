@@ -195,7 +195,7 @@ autoCloseComplaints();
 
                                     <hr>
 
-                                    <!-- === UPDATED ACTION BUTTONS === -->
+                                    <!-- === ACTION BUTTONS === -->
                                     <div class="row">
                                         <div class="col-md-12">
                                             <?php if ($complaint_status == 'Open') : ?>

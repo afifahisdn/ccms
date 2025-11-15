@@ -7,7 +7,6 @@
 /*.............................................................. Grid View (DataTables) ..............................................................*/
 window.addEventListener("DOMContentLoaded", (event) => {
     // Simple-DataTables
-    // https://github.com/fiduswriter/Simple-DataTables/wiki
     const datatablesSimple = document.getElementById("datatablesSimple");
     if (datatablesSimple) {
         new simpleDatatables.DataTable(datatablesSimple);
@@ -19,7 +18,6 @@ window.addEventListener("DOMContentLoaded", (event) => {
 // General function to update settings table text fields
 settingsUpdate = (ele, field) => {
     var val = document.getElementById(ele.id).value;
-
     var data = {
         field: field,
         value: val,
@@ -80,7 +78,7 @@ login = (myForm) => {
     });
 };
 
-/*.............................................................. Generic Data Update (Inline Edit) ..............................................................*/
+/*.............................................................. General Data Update (Inline Edit) ..............................................................*/
 
 /**
  * Shows a warning popup BEFORE updating a complaint status to 'Closed'.
@@ -88,6 +86,11 @@ login = (myForm) => {
  */
 function confirmStatusChange(selectElement, complaintId, currentStatus) {
     var newStatus = selectElement.value;
+
+    // Check if the status is actually changing
+    if (newStatus === currentStatus) {
+        return;
+    }
 
     if (newStatus === "Closed") {
         Swal.fire({
@@ -131,11 +134,11 @@ updateData = (ele, id, field, table, id_fild) => {
 
     // Add validation if needed
     if (field == "email") {
-        if (!emailvalidation(val, false)) { // Pass false to prevent reload
+        if (typeof emailvalidation === 'function' && !emailvalidation(val, false)) { // Pass false to prevent reload
             return;
         }
     } else if (field == "phone") {
-        if (!phonenumber(val, false)) { // Pass false to prevent reload
+        if (typeof phonenumber === 'function' && !phonenumber(val, false)) { // Pass false to prevent reload
             return;
         }
     }
@@ -143,12 +146,25 @@ updateData = (ele, id, field, table, id_fild) => {
     callUpdate(data); // Call the AJAX function
 };
 
-// The actual AJAX call for inline updates
+/**
+ * The actual AJAX call for inline updates.
+ * NOW SENDS STAFF ID AND ROLE for auto-assignment.
+ */
 callUpdate = (data) => {
+    // Get the staff ID and Role from the hidden fields on the page
+    // (These fields will be added to admin/complaint.php)
+    const staffId = document.getElementById('logged_in_staff_id') ? document.getElementById('logged_in_staff_id').value : '0';
+    const userRole = document.getElementById('logged_in_user_role') ? document.getElementById('logged_in_user_role').value : 'staff';
+    
+    // Add them to the data object
+    data.logged_in_staff_id = staffId;
+    data.logged_in_user_role = userRole;
+    // --- END NEW LOGIC ---
+
     $.ajax({
         method: "POST",
         url: "../server/api.php?function_code=updateData",
-        data: data,
+        data: data, // `data` now includes the staff ID and role
         dataType: 'json',
         success: function(response) {
             console.log("Inline Update Response:", response);
@@ -255,7 +271,6 @@ checkStaffPasswordByEmail = (password, email) => {
 
 /*.............................................................. Add Complaint (Admin Form) ..............................................................*/
 
-// This function replaces the old 'addRequestAdmin'
 addComplaintAdmin = (formElement) => {
     var formData = new FormData(formElement);
 
@@ -276,7 +291,7 @@ addComplaintAdmin = (formElement) => {
         errorMessage("Please Enter Complaint Title.");
         return;
     }
-    if (formData.get("category_id").trim() === "") { // <-- Updated to category_id
+    if (formData.get("category_id").trim() === "") { 
         errorMessage("Please Select a Category.");
         return;
     }

@@ -12,7 +12,6 @@ include "pages/header.php"; // Includes assets, connection, get
 include "admin.php";      // Includes session check, sets $logged_in_user_role, $logged_in_staff_id
 
 // --- POOR MAN'S CRON JOB ---
-// Run the auto-close logic every time this page is loaded.
 autoCloseComplaints();
 // --- END CRON JOB ---
 
@@ -39,16 +38,11 @@ if (!empty($_GET['dorm_id'])) {
 }
 
 // Get filtered data
-// Pass the role and ID to the function for permission filtering
-$getall = getFilteredComplaints($filters, $logged_in_user_role, $logged_in_staff_id);
+$getall = getFilteredComplaints($filters); // This function is from get.php
 $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
 ?>
 
 <body>
-    <!-- These hidden fields are used by main.js for auto-assignment -->
-    <input type="hidden" id="logged_in_staff_id" value="<?php echo htmlspecialchars($logged_in_staff_id); ?>">
-    <input type="hidden" id="logged_in_user_role" value="<?php echo htmlspecialchars($logged_in_user_role); ?>">
-
     <div id="app">
         <div id="sidebar" class="active">
             <div class="sidebar-wrapper active">
@@ -120,7 +114,7 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                         <?php else : ?>
                             <li class="sidebar-item">
                                 <a href="staff_edit.php?staff_id=<?php echo htmlspecialchars($logged_in_staff_id); ?>" class='sidebar-link'>
-                                    <i class="bi bi-person-fill"></i>
+                                 <i class="bi bi-person-fill"></i>
                                     <span>Profile</span>
                                 </a>
                             </li>
@@ -164,7 +158,6 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                 <div class="mt-3 mb-3 border-bottom pb-2"></div>
             </div>
 
-            <!-- === BUTTON LAYOUT === -->
             <div class="row">
                 <div class="col-lg-7">
                     <nav aria-label="breadcrumb">
@@ -187,10 +180,8 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
             </div>
 
             <div class="page-content">
-                <!-- === FILTER BAR LAYOUT === -->
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Filter & Search Complaints</h5>
                         <form action="complaint.php" method="GET">
                             <!-- Top Row: Search Bar -->
                             <div class="row mb-3 text-lg-end">
@@ -255,6 +246,7 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                         </form>
                     </div>
                 </div>
+                
                 <!-- === COMPLAINT LIST === -->
                 <?php
                 if ($getall && mysqli_num_rows($getall) > 0) {
@@ -318,8 +310,7 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                                                 <br><?php echo date("Y-m-d H:i", strtotime($row["date_updated"])); ?>
                                             </div>
                                             <div class="col-md-3"> <strong>Assigned Staff:</strong>
-                                                <!-- Show staff name -->
-                                                <br><?php echo htmlspecialchars($row["staff_name"] ?? 'Not Assigned'); ?>
+                                                <br><?php echo htmlspecialchars($row["staff_name"] ?? 'Not Assigned'); ?><br>
                                             </div>
                                             <div class="col-md-3"> <strong>Current Status:</strong>
                                                 <br><span class="status-<?php echo strtolower(str_replace(' ', '', $complaint_status)); ?>"><?php echo htmlspecialchars($complaint_status); ?></span>
@@ -377,30 +368,26 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                                 </div>
 
                                 <hr>
-                                <!-- === ACTION ROW === -->
+                                <!-- Action Row (Uses ENUM strings) -->
                                 <div class="row align-items-end">
-                                    <!-- Status Column -->
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label for="complaint_status_<?php echo $complaint_id; ?>" class="form-label">Update Status:</label>
                                         <?php if ($complaint_status == "Closed" || $complaint_status == "Withdrawn") : ?>
+                                            <!-- Show a message instead of the dropdown -->
                                             <p class="form-control-static text-muted pt-2">
                                                 <em>Cannot be updated. Status is <?php echo htmlspecialchars($complaint_status); ?>.</em>
                                             </p>
-                                        <?php elseif (!$can_edit) : ?>
-                                            <p class="form-control-static text-muted pt-2">
-                                                <em>Assigned to another staff.</em>
-                                            </p>
                                         <?php else : ?>
                                             <!-- Show the dropdown -->
-                                            <select onchange='confirmStatusChange(this, "<?php echo $complaint_id; ?>", "<?php echo $complaint_status; ?>")' 
+                                                <select onchange='confirmStatusChange(this, "<?php echo $complaint_id; ?>", "<?php echo $complaint_status; ?>")' 
                                                     id="complaint_status_<?php echo $complaint_id; ?>" 
                                                     class='form-select' 
-                                                    name="complaint_status">
+                                                    name="complaint_status" 
+                                                    <?php echo ($complaint_status == "Closed" || $complaint_status == "Withdrawn") ? 'disabled' : ''; ?>>
                                                 
                                                 <option value="Open" <?php if ($complaint_status == "Open") echo "selected"; ?>>Open</option>
                                                 <option value="In Progress" <?php if ($complaint_status == "In Progress") echo "selected"; ?>>In Progress</option>
                                                 <option value="Resolved" <?php if ($complaint_status == "Resolved") echo "selected"; ?>>Resolved</option>
-                                                <!-- Staff cannot see "Closed" option -->
                                                 <?php if ($logged_in_user_role == 'admin') : ?>
                                                     <option value="Closed" <?php if ($complaint_status == "Closed") echo "selected"; ?>>Closed</option>
                                                 <?php endif; ?>
@@ -423,21 +410,12 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                                             <option value="critical" <?php if ($current_urgency == "critical") echo "selected"; ?>>Critical</option>
                                         </select>
                                     </div>
-
-                                    <!-- Buttons Column -->
-                                    <div class="col-md-5 text-md-end mt-3 mt-md-0">
-                                        <label class="form-label d-block d-md-none">&nbsp;</label> <!-- Placeholder for mobile -->
+                                    <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                                        <label class="form-label d-block d-md-none">&nbsp;</label>
                                         <?php if ($logged_in_user_role == 'admin') : ?>
-                                            <!-- Delete button is disabled if closed/withdrawn -->
-                                            <button type="button" onclick="deleteData(<?php echo $complaint_id; ?>,'complaint', 'complaint_id')" 
-                                                    class="btn btn-danger" 
-                                                    <?php echo ($complaint_status == "Closed" || $complaint_status == "Withdrawn") ? 'disabled' : ''; ?>>
-                                                <i class="fa-solid fa-trash"></i> Delete
-                                            </button>
+                                            <button type="button" onclick="deleteData(<?php echo $complaint_id; ?>,'complaint', 'complaint_id')" class="btn btn-danger"> <i class="fa-solid fa-trash"></i> Delete</button>
                                         <?php endif; ?>
-                                        <a href="get_complaint_report.php?complaint_id=<?php echo $complaint_id; ?>" target="_blank" class="btn btn-info py-2 px-4 text-white ms-2">
-                                            <i class="fa-solid fa-print"></i> Print
-                                        </a>
+                                        <a href="get_complaint_report.php?complaint_id=<?php echo $complaint_id; ?>" target="_blank" class="btn btn-info py-2 px-4 text-white ms-2"><i class="fa-solid fa-print"></i> Print</a>
                                     </div>
                                 </div>
                             </div>
@@ -449,6 +427,7 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                 }
                 ?>
             </div>
+
             <?php include "pages/footer.php"; ?>
         </div>
     </div>
@@ -458,8 +437,6 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/main.js"></script>
 </body>
-
-<!-- === UPDATED CSS === -->
 <style>
     @import url('https://fonts.googleapis.com/css?family=Open+Sans&display=swap');
 
@@ -496,7 +473,6 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
         height: 7px;
         display: flex;
         margin-bottom: 6rem !important;
-        margin-top: 50px;
         border-radius: 5px;
     }
 
@@ -586,10 +562,10 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
     /* Add space for label alignment */
     .align-items-end .form-label {
         display: block;
-        /* visibility: hidden; */ /* Keep labels visible for all */
+        visibility: hidden;
     }
     
-    .align-itemsS-end .col-md-4:first-child .form-label,
+    .align-items-end .col-md-4:first-child .form-label,
     .align-items-end .col-md-3:first-child .form-label,
     .align-items-end .col-md-3:nth-child(2) .form-label {
         visibility: visible;
@@ -600,16 +576,5 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
         display: flex;
         align-items: flex-end;
     }
-    
-    /* Read-only status text */
-    .form-control-static {
-        display: block;
-        min-height: calc(1.5em + 0.75rem + 2px);
-        padding-top: 0.375rem;
-        padding-bottom: 0.375rem;
-        font-weight: 400;
-        line-height: 1.5;
-    }
 </style>
-
 </html>

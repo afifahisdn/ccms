@@ -55,7 +55,6 @@ try {
 
             // --- Student Management ---
         case "addStudent":
-            // createStudent handles both self-registration and admin adding
             // createStudent echoes JSON response {success: true} or {error: ...} or {exists: ...}
             createStudent($_POST);
             break;
@@ -77,7 +76,6 @@ try {
             if ($result === true) {
                 echo json_encode(["success" => true]);
             }
-            // Errors/exists messages are handled inside addStaff()
             break;
 
             // --- Complaint Management ---
@@ -87,7 +85,6 @@ try {
             if ($result === true) {
                 echo json_encode(["success" => true]);
             } elseif ($result === false && !headers_sent()) {
-                // If addComplaint returned false and didn't send an error
                 echo json_encode(["error" => "Failed to submit complaint."]);
             }
             break;
@@ -100,14 +97,20 @@ try {
                 echo json_encode(["error" => "Failed to add complaint."]);
             }
             break;
+        
+        // --- NEW/UPDATED ROUTE for Admin Complaint List ---
         case "getFilteredComplaints":
-            // Admin filter/sort request
-            $filters = $_POST; // Get filters from POST
-            $complaints = getFilteredComplaints($filters);
+            // Get session info
+            $role = $_SESSION['user_role'] ?? 'staff';
+            $staff_id = $_SESSION['staff_id'] ?? 0;
+            // Get filters from POST
+            $filters = $_POST; 
+            $complaints = getFilteredComplaints($filters, $role, $staff_id);
             echo json_encode($complaints ?: []);
             break;
+
         case "updateComplaintStatus":
-            // updateComplaintStatus echoes 'success' or 'error'
+            // This is for STUDENT actions (Withdraw, Approve, Re-Open)
             header('Content-Type: text/plain');
             echo updateComplaintStatus($_POST);
             break;
@@ -118,7 +121,6 @@ try {
             if ($result === true) {
                 echo json_encode(["success" => true]);
             }
-            // Errors/exists messages are handled inside addCategory()
             break;
 
             // --- Department Management ---
@@ -207,8 +209,11 @@ try {
 
             // --- General Data Operations ---
         case "updateData":
-            // Generic update for inline edits (e.g., complaint status)
-            $result = updateDataTable($_POST);
+            // --- AUTO-ASSIGN ---
+            // This is called by ADMIN/STAFF
+            $staff_id = $_SESSION['staff_id'] ?? 0;
+            $role = $_SESSION['user_role'] ?? 'staff';
+            $result = updateDataTable($_POST, $staff_id, $role);
             echo json_encode(["success" => (bool)$result]);
             break;
         case "deleteData":

@@ -2,7 +2,7 @@
 /*
 * admin/categories.php
 *
-* Manages complaint categories (Add, Edit Inline, Delete).
+* NEW FILE - Manages complaint categories (Add, Edit Inline, Delete).
 * Only accessible by 'admin' role.
 */
 
@@ -57,7 +57,6 @@ include "checkAdmin.php"; // Ensures only 'admin' role can access
                                 <span>Departments</span>
                             </a>
                         </li>
-                        <!-- Categories link is now active -->
                         <li class="sidebar-item active">
                             <a href="categories.php" class='sidebar-link'>
                                 <i class="bi bi-tags-fill"></i>
@@ -126,12 +125,13 @@ include "checkAdmin.php"; // Ensures only 'admin' role can access
                                     <thead>
                                         <tr>
                                             <th>Category Name</th>
+                                            <th>Assigned Department</th> <!-- NEW COLUMN -->
                                             <th style="width: 150px;">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php
-                                        // Use new function
+                                        // getAllCategories() now JOINS department
                                         $getall = getAllCategories();
                                         if ($getall) {
                                             while ($row = mysqli_fetch_assoc($getall)) {
@@ -145,6 +145,26 @@ include "checkAdmin.php"; // Ensures only 'admin' role can access
                                                                onchange="updateData(this, '<?php echo $category_id; ?>', 'category_name', 'categories', 'category_id');" 
                                                                value="<?php echo htmlspecialchars($row["category_name"]); ?>" 
                                                                class="form-control">
+                                                    </td>
+                                                    <td>
+                                                        <!-- Department Dropdown -->
+                                                        <select onchange='updateData(this, "<?php echo $category_id; ?>","department_id", "categories", "category_id")' 
+                                                                id="department_id_<?php echo $category_id; ?>" class="form-select" name="department_id">
+                                                            <option value="">Select Department</option>
+                                                            <?php
+                                                            $getallDepts = getAllDepartment();
+                                                            if ($getallDepts) {
+                                                                // Must reset pointer to loop through departments for each category
+                                                                mysqli_data_seek($getallDepts, 0); 
+                                                                while ($row2 = mysqli_fetch_assoc($getallDepts)) {
+                                                                    $selected = ($row['department_id'] == $row2['department_id']) ? 'selected' : '';
+                                                                    echo '<option value="' . $row2['department_id'] . '" ' . $selected . '>'
+                                                                        . htmlspecialchars($row2['department_name'])
+                                                                        . '</option>';
+                                                                }
+                                                            }
+                                                            ?>
+                                                        </select>
                                                     </td>
                                                     <td>
                                                         <!-- Delete Button -->
@@ -181,8 +201,26 @@ include "checkAdmin.php"; // Ensures only 'admin' role can access
                 <form id="addCategoryForm" method="post" onsubmit="return false;">
                     <div class="modal-body bg-white">
                         <div class="mb-3">
-                            <label for="category_name" class="form-label">Category Name</label>
+                            <label for="category_name_modal" class="form-label">Category Name</label>
                             <input type="text" class="form-control" name="category_name" id="category_name_modal" placeholder="e.g., Laundry Services" required>
+                        </div>
+                        <!-- Assign Department on Creation -->
+                        <div class="mb-3">
+                            <label for="department_id_modal" class="form-label">Assign to Department</label>
+                            <select class="form-select" name="department_id" id="department_id_modal" required>
+                                <option value="">Select Department</option>
+                                <?php
+                                $getallDepts = getAllDepartment();
+                                if ($getallDepts) {
+                                    mysqli_data_seek($getallDepts, 0);
+                                    while ($row2 = mysqli_fetch_assoc($getallDepts)) {
+                                        echo '<option value="' . $row2['department_id'] . '">'
+                                            . htmlspecialchars($row2['department_name'])
+                                            . '</option>';
+                                    }
+                                }
+                                ?>
+                            </select>
                         </div>
                     </div>
                     <div class="modal-footer">

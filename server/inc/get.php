@@ -251,9 +251,11 @@ function getComplaintByID($complaint_id)
 /**
  * Gets all non-deleted complaints for the admin/staff view, with filtering.
  * @param array $filters (e.g., ['status' => 'Open', 'dorm_id' => 1, 'search_query' => 'leak'])
+ * @param string $role ('admin' or 'staff')
+ * @param int $staff_id (The ID of the logged-in staff member)
  * @return mysqli_result|false The result set on success, false on failure.
  */
-function getFilteredComplaints($filters = [])
+function getFilteredComplaints($filters = [], $role = 'admin', $staff_id = 0)
 {
     include "connection.php";
     
@@ -269,7 +271,31 @@ function getFilteredComplaints($filters = [])
     $params = [];
     $types = "";
 
-    // General Search Query
+    // --- Role-Based Filtering for Staff ---
+    if ($role == 'staff' && $staff_id > 0) {
+        // 1. Get the staff member's department ID
+        $staff_dept_id = 0;
+        $staff_result = getStaffById($staff_id);
+        if ($staff_result && $staff_data = mysqli_fetch_assoc($staff_result)) {
+            $staff_dept_id = (int)$staff_data['department_id'];
+        }
+
+        if ($staff_dept_id > 0) {
+            // 2. Add SQL to filter by their department (for unassigned) OR by their ID (for assigned)
+            $sql .= " AND ( (c.assigned_staff_id IS NULL AND cat.department_id = ?) OR (c.assigned_staff_id = ?) )";
+            $params[] = $staff_dept_id;
+            $params[] = $staff_id;
+            $types .= "ii";
+        } else {
+            // Failsafe: Staff member has no department, only show complaints assigned to them
+            $sql .= " AND c.assigned_staff_id = ?";
+            $params[] = $staff_id;
+            $types .= "i";
+        }
+    }
+    // Admin sees all (no extra WHERE clause)
+
+    // --- General Search Query ---
     if (!empty($filters['search_query'])) {
         $sql .= " AND (c.complaint_id = ? OR c.complaint_title LIKE ? OR s.name LIKE ? OR c.room_number LIKE ?)";
         $search_term = "%" . $filters['search_query'] . "%";
@@ -280,7 +306,7 @@ function getFilteredComplaints($filters = [])
         $types .= "ssss";
     }
 
-    // Specific Filters
+    // --- Specific Filters ---
     if (!empty($filters['status'])) {
         $sql .= " AND c.complaint_status = ?";
         $params[] = $filters['status'];
