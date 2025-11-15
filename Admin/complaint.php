@@ -246,8 +246,7 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                         </form>
                     </div>
                 </div>
-                <!-- === END UPDATED FILTER BAR === -->
-
+                
                 <!-- === COMPLAINT LIST === -->
                 <?php
                 if ($getall && mysqli_num_rows($getall) > 0) {
