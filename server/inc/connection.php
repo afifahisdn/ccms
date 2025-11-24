@@ -5,7 +5,7 @@
 */
 
 // Build connection between database and system
-$con = mysqli_connect("localhost", "root", "", "ccms1");
+$con = mysqli_connect("localhost", "root", "", "ccms");
 
 // testing if connection succesfully
 if (!$con) {
