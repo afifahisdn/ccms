@@ -285,13 +285,13 @@ function updateStudentProfile(student_id) {
 // --- Complaint Action Functions ---
 
 /**
- * Shows confirmation and sets a complaint status to 'Withdrawn'.
+ * Shows confirmation and sets a complaint status to 'Closed' (simulating withdrawal).
  * Called from complaints.php.
  */
 function withdrawComplaint(complaintId) {
     Swal.fire({
         title: 'Are you sure?',
-        text: "Do you really want to withdraw this complaint? This action cannot be undone.",
+        text: "Do you really want to withdraw this complaint? This will close the ticket.",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
@@ -300,8 +300,9 @@ function withdrawComplaint(complaintId) {
         cancelButtonText: 'No, keep it'
     }).then((result) => {
         if (result.isConfirmed) {
-            // Call helper function to set status
-            updateStatusTo(complaintId, 'Withdrawn', 'Complaint withdrawn.');
+            // UPDATED: Set status to 'Closed' instead of 'Withdrawn'
+            // You could optionally add a note here via a separate API call if needed
+            updateStatusTo(complaintId, 'Closed', 'Complaint withdrawn and closed.');
         }
     });
 }

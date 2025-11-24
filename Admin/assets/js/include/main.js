@@ -159,7 +159,6 @@ callUpdate = (data) => {
     // Add them to the data object
     data.logged_in_staff_id = staffId;
     data.logged_in_user_role = userRole;
-    // --- END NEW LOGIC ---
 
     $.ajax({
         method: "POST",
@@ -180,6 +179,54 @@ callUpdate = (data) => {
         },
     });
 };
+
+/**
+ * Updates staff profile (Admin or Staff self-edit).
+ * Collects all fields and sends them to the API.
+ */
+function updateStaffProfile(formElement) {
+    var formData = new FormData(formElement);
+
+    // Basic validation
+    if (!formData.get("name").trim()) { errorMessage("Name is required."); return; }
+    if (!formData.get("email").trim()) { errorMessage("Email is required."); return; }
+    if (!formData.get("phone").trim()) { errorMessage("Phone Number is required."); return; }
+    if (!formData.get("nric").trim()) { errorMessage("NRIC is required."); return; }
+    if (!formData.get("department_id").trim()) { errorMessage("Department is required."); return; }
+    
+    // Add role if disabled (FormData doesn't capture disabled fields)
+    var roleSelect = formElement.querySelector('select[name="staff_role"]');
+    if (roleSelect && roleSelect.disabled) {
+        formData.append("staff_role", roleSelect.value);
+    }
+    
+    // Add department if disabled
+    var deptSelect = formElement.querySelector('select[name="department_id"]');
+    if (deptSelect && deptSelect.disabled) {
+        formData.append("department_id", deptSelect.value);
+    }
+
+    $.ajax({
+        method: "POST",
+        url: "../server/api.php?function_code=updateStaffProfile", // Ensure this case exists in api.php
+        data: formData,
+        dataType: 'json',
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            console.log("Update Staff Response:", response);
+            if (response.success) {
+                successToast("Profile updated successfully!");
+            } else {
+                errorMessage(response.error || "Failed to update profile.");
+            }
+        },
+        error: function(xhr, status, error) {
+             console.error(xhr.responseText);
+             errorMessage("An error occurred while updating.");
+        }
+    });
+}
 
 /*.............................................................. Admin/Staff Password Change ..............................................................*/
 
