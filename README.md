@@ -169,14 +169,7 @@ The system consists of **three user roles**, each with defined permissions.
 
 ---
 
-Below is an **Installation & Setup** section written to perfectly match the *style of your PDF* and integrate smoothly with the README structure I gave earlier.
-You can paste this *directly* into your `README.md`.
-
----
-
 # **6. Installation & Setup Guide**
-
-This section explains how to install, configure, and run the **College Complaint Management System (CCMS)** on a local server or production environment.
 
 ---
 
