@@ -168,3 +168,146 @@ The system consists of **three user roles**, each with defined permissions.
 | Change global site settings | Through `admin/settings.php` (recommended) |
 
 ---
+
+Below is an **Installation & Setup** section written to perfectly match the *style of your PDF* and integrate smoothly with the README structure I gave earlier.
+You can paste this *directly* into your `README.md`.
+
+---
+
+# **6. Installation & Setup Guide**
+
+This section explains how to install, configure, and run the **College Complaint Management System (CCMS)** on a local server or production environment.
+
+---
+
+## **6.1 System Requirements**
+
+**Server / Backend Requirements:**
+
+* PHP **8.0+**
+* MySQL **5.7+ / MariaDB 10+**
+* Apache or Nginx
+* phpMyAdmin (optional but recommended)
+
+**Required PHP Extensions:**
+
+* `mysqli`
+* `json`
+* `gd`
+* `curl`
+
+**Frontend Requirements:**
+
+* Modern web browser
+* JavaScript enabled
+
+---
+
+## **6.2 Folder Setup**
+
+1. Download or clone the repository:
+
+```bash
+git clone https://github.com/afifahisdn/ccms.git
+```
+
+2. Move the project folder into your local server directory:
+
+**For XAMPP:**
+
+```
+C:\xampp\htdocs\ccms
+```
+
+**For WAMP:**
+
+```
+C:\wamp64\www\ccms
+```
+
+**For Linux (Apache):**
+
+```bash
+/var/www/html/ccms
+```
+
+---
+
+## **6.3 Database Setup**
+
+1. Open **phpMyAdmin** or your MySQL client
+2. Create a new database:
+
+```
+ccms
+```
+
+3. Import the database structure:
+
+* Go to **phpMyAdmin → ccms → Import**
+* Select your SQL file (e.g., `ccms.sql` or `/database/ccms_db.sql` from the repo)
+* Click **Import**
+
+4. Confirm all tables are generated correctly:
+
+* `student`
+* `staff`
+* `complaint`
+* `categories`
+* `department`
+* `dormitory`
+* others depending on your version
+
+---
+
+## **6.4 Configuration**
+
+### **A. Database Connection**
+
+Open:
+
+```
+/server/inc/connection.php
+```
+
+Update the following fields as needed:
+
+```php
+$server = "localhost";
+$user = "root";
+$pass = "";
+$db = "ccms";
+```
+
+### **B. Admin Login Setup**
+
+```
+Email: admin
+Password: 12345
+```
+
+(Adjust based on your SQL file.)
+
+---
+
+## **6.5 Running the System**
+
+1. Start your local server:
+
+   * XAMPP → Start **Apache** and **MySQL**
+   * WAMP → Start all services
+   * Linux → Ensure Apache/Nginx + MySQL are running
+
+2. Open the system in your browser:
+
+```
+http://localhost/ccms/
+```
+
+3. To access the Admin Panel:
+
+```
+http://localhost/ccms/admin/
+```
+
+---
