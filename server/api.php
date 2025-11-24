@@ -78,6 +78,16 @@ try {
             }
             break;
 
+        case "updateStaffProfile":
+            // Expected to be in server/inc/update.php
+            $result = updateStaffProfile($_POST); 
+            if ($result === true) {
+                echo json_encode(["success" => true]);
+            } else {
+                echo json_encode(["error" => "Update failed."]);
+            }
+            break;
+
             // --- Complaint Management ---
         case "addComplaint":
             // Student submission (handles file upload)
@@ -98,7 +108,7 @@ try {
             }
             break;
         
-        // --- NEW/UPDATED ROUTE for Admin Complaint List ---
+        // --- Admin Complaint List ---
         case "getFilteredComplaints":
             // Get session info
             $role = $_SESSION['user_role'] ?? 'staff';

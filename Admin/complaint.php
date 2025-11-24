@@ -318,8 +318,31 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                                                 <br><?php echo date("Y-m-d H:i", strtotime($row["date_updated"])); ?>
                                             </div>
                                             <div class="col-md-3"> <strong>Assigned Staff:</strong>
-                                                <!-- Show staff name -->
-                                                <br><?php echo htmlspecialchars($row["staff_name"] ?? 'Not Assigned'); ?>
+                                                <br>
+                                                <?php if ($logged_in_user_role == 'admin') : ?>
+                                                    <!-- ADMIN: Show Dropdown to re-assign -->
+                                                    <select onchange='updateData(this, "<?php echo $complaint_id; ?>", "assigned_staff_id", "complaint", "complaint_id")'
+                                                            class="form-select form-select-sm"
+                                                            <?php echo ($complaint_status == "Closed" || $complaint_status == "Withdrawn") ? 'disabled' : ''; ?>>
+                                                        <option value="">Unassigned</option>
+                                                        <?php
+                                                        // Fetch all staff for the dropdown
+                                                        // We need to make sure getAllStaff() is available. It is included via header.php -> get.php
+                                                        $all_staff = getAllStaff();
+                                                        if ($all_staff) {
+                                                            // Reset pointer if getAllStaff was used before
+                                                            mysqli_data_seek($all_staff, 0);
+                                                            while ($staff_row = mysqli_fetch_assoc($all_staff)) {
+                                                                $selected = ($row["assigned_staff_id"] == $staff_row['staff_id']) ? 'selected' : '';
+                                                                echo "<option value='{$staff_row['staff_id']}' $selected>" . htmlspecialchars($staff_row['name']) . "</option>";
+                                                            }
+                                                        }
+                                                        ?>
+                                                    </select>
+                                                <?php else : ?>
+                                                    <!-- STAFF: Read-only text -->
+                                                    <?php echo htmlspecialchars($row["staff_name"] ?? 'Not Assigned'); ?>
+                                                <?php endif; ?>
                                             </div>
                                             <div class="col-md-3"> <strong>Current Status:</strong>
                                                 <br><span class="status-<?php echo strtolower(str_replace(' ', '', $complaint_status)); ?>"><?php echo htmlspecialchars($complaint_status); ?></span>

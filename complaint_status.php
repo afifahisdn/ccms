@@ -52,7 +52,7 @@ $isLoggedIn = isset($_SESSION["student_id"]);
                         </div>
                         <!-- Guest Links -->
                         <a href="admin/register.php" class="quick-link d-inline-block">Signup</a>
-                        <a href="admin/login.php" class="quick-link d-inline-block">Login</a>
+                        <a href="admin/admin/login.php" class="quick-link d-inline-block">Login</a>
                     </div>
                 </div>
             </div>
@@ -73,7 +73,7 @@ $isLoggedIn = isset($_SESSION["student_id"]);
                         <ul class="site-menu js-clone-nav mx-auto d-none d-lg-block">
                             <!-- Guest Menu -->
                             <li><a href="index.php#section-track-and-trace" class="nav-link">Check Complaint Status</a></li>
-                            <li><a href="login.php" class="nav-link">Submit Complaint</a></li>
+                            <li><a href="admin/login.php" class="nav-link">Submit Complaint</a></li>
                             <li><a href="index.php#section-about" class="nav-link">About Us</a></li>
                             <li><a href="index.php#section-contact" class="nav-link">Contact</a></li>
                         </ul>

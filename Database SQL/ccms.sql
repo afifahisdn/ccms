@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 14, 2025 at 11:57 PM
+-- Generation Time: Nov 24, 2025 at 03:56 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `ccms1`
+-- Database: `ccms`
 --
 
 -- --------------------------------------------------------
@@ -30,6 +30,7 @@ SET time_zone = "+00:00";
 CREATE TABLE `categories` (
   `category_id` int(11) NOT NULL,
   `category_name` varchar(100) NOT NULL,
+  `department_id` int(11) DEFAULT NULL,
   `is_deleted` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -37,14 +38,16 @@ CREATE TABLE `categories` (
 -- Dumping data for table `categories`
 --
 
-INSERT INTO `categories` (`category_id`, `category_name`, `is_deleted`) VALUES
-(1, 'plumbing', 0),
-(2, 'electrical', 0),
-(3, 'furniture', 0),
-(4, 'cleaning', 0),
-(5, 'internet', 0),
-(6, 'security', 0),
-(7, 'other', 0);
+INSERT INTO `categories` (`category_id`, `category_name`, `department_id`, `is_deleted`) VALUES
+(1, 'plumbing', 1, 0),
+(2, 'electrical', 1, 0),
+(3, 'furniture', 1, 0),
+(4, 'cleaning', 3, 0),
+(5, 'internet', 2, 0),
+(6, 'security', 4, 0),
+(7, 'pest_control', 3, 0),
+(8, 'heating_cooling', 1, 0),
+(9, 'other', 5, 0);
 
 -- --------------------------------------------------------
 
@@ -76,11 +79,11 @@ CREATE TABLE `complaint` (
 --
 
 INSERT INTO `complaint` (`complaint_id`, `student_id`, `category_id`, `dormitory_id`, `room_number`, `complaint_title`, `complaint_description`, `photo`, `urgency_level`, `complaint_status`, `assigned_staff_id`, `resolution_notes`, `is_deleted`, `created_at`, `date_updated`, `date_resolved`) VALUES
-(1000001, 'STU2024001', 1, 1, 'A-101', 'Leaking Faucet in Bathroom', 'The faucet in my bathroom is constantly dripping and wasting water. It has been going on for 2 days now.', 'server/uploads/complaints/faucet_leak_a101.jpg', 'medium', 'Open', 2, 'Maintenance staff has been assigned to fix the faucet.', 0, '2025-10-24 11:59:57', '2025-11-15 05:23:31', NULL),
-(1000002, 'STU2024002', 5, 4, 'B-205', 'WiFi Connection Issues', 'My room has very poor WiFi signal. Cannot connect to online classes properly.', NULL, 'high', 'Closed', NULL, NULL, 0, '2025-10-24 11:59:57', '2025-11-15 02:15:43', '2025-11-15 02:15:43'),
-(1000003, 'STU2024003', 3, 5, 'C-312', 'Broken Study Table', 'The study table in my room has a broken leg and is unstable. Need urgent repair.', NULL, 'medium', 'Closed', 3, 'Table has been repaired and reinforced. Student confirmed it is now stable.', 0, '2025-10-24 11:59:57', '2024-12-01 09:15:45', '2024-12-01 16:20:33'),
-(1000006, 'STU2024004', 7, 6, 'A-108', 'ceiling pecah', 'masuk hujannnnn', NULL, 'medium', 'In Progress', NULL, NULL, 0, '2025-11-13 22:44:28', '2025-11-15 05:21:44', NULL),
-(1000007, 'STU2024005', 2, 2, 'A-102', 'Test', 'test', NULL, 'medium', 'Open', NULL, NULL, 0, '2025-11-15 06:08:32', '2025-11-15 06:08:32', NULL);
+(1000001, 'STU2024001', 1, 1, 'A-101', 'Leaking Faucet', 'The faucet in the bathroom is dripping constantly.', NULL, 'low', 'Open', NULL, NULL, 0, '2025-11-24 21:33:49', '2025-11-24 21:39:29', NULL),
+(1000002, 'STU2024002', 5, 3, 'B-205', 'No Internet Access', 'I cannot connect to the WiFi in my room.', NULL, 'high', 'In Progress', 3, NULL, 0, '2025-11-23 21:33:49', '2025-11-24 21:33:49', NULL),
+(1000003, 'STU2024003', 2, 5, 'C-312', 'Broken Light Switch', 'The light switch is stuck.', NULL, 'medium', 'Resolved', 2, 'Replaced the switch plate.', 0, '2025-11-21 21:33:49', '2025-11-23 19:33:49', '2025-11-23 19:33:49'),
+(1000004, 'STU2024004', 4, 1, 'A-108', 'Room Needs Cleaning', 'Dusty floor.', NULL, 'low', 'Withdrawn', NULL, NULL, 0, '2025-11-19 21:33:49', '2025-11-20 21:33:49', NULL),
+(1000005, 'STU2024005', 6, 6, 'D-401', 'Lost ID Card', 'I lost my ID card near the gym.', NULL, 'medium', 'Closed', 4, 'ID card found and returned to student affairs.', 0, '2025-11-14 21:33:49', '2025-11-16 21:33:49', '2025-11-16 21:33:49');
 
 -- --------------------------------------------------------
 
@@ -151,9 +154,8 @@ CREATE TABLE `feedback` (
 --
 
 INSERT INTO `feedback` (`feedback_id`, `student_id`, `subject`, `message`, `date_updated`, `is_deleted`) VALUES
-(1, 'STU2024005', 'Great Complaint System', 'The new complaint system is very efficient and easy to use. Thank you for implementing this!', '2024-12-01 10:00:00', 0),
-(2, 'STU2024007', 'Suggestion for Improvement', 'It would be great if we could upload photos with our complaints to show the issues better.', '2024-12-01 15:30:00', 0),
-(3, 'STU2024005', 'test', 'test', '2025-11-15 06:31:22', 0);
+(6, 'STU2024001', 'Great Service', 'The maintenance team fixed my sink very quickly. Thanks!', '2025-11-24 21:33:49', 0),
+(7, 'STU2024002', 'WiFi Speed', 'The internet is still a bit slow in Block B at night.', '2025-11-22 21:33:49', 0);
 
 -- --------------------------------------------------------
 
@@ -197,11 +199,10 @@ CREATE TABLE `staff` (
   `email` varchar(255) NOT NULL,
   `phone` varchar(255) NOT NULL,
   `nric` varchar(255) NOT NULL,
-  `address` varchar(255) NOT NULL,
   `gender` tinyint(1) NOT NULL,
   `password` varchar(255) NOT NULL,
   `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
-  `department_id` int(255) NOT NULL,
+  `department_id` int(11) NOT NULL,
   `staff_role` enum('admin','staff') NOT NULL DEFAULT 'staff'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -209,11 +210,12 @@ CREATE TABLE `staff` (
 -- Dumping data for table `staff`
 --
 
-INSERT INTO `staff` (`staff_id`, `name`, `email`, `phone`, `nric`, `address`, `gender`, `password`, `is_deleted`, `department_id`, `staff_role`) VALUES
-(1, 'System Administrator', 'admin', '0123456789', '800101-01-0001', 'College Administration Building', 1, '12345', 0, 5, 'admin'),
-(2, 'Ahmad bin Ismail', 'ahmad.ismail@college.edu', '0123456789', '850505-10-1234', 'Staff Quarters, Block A', 1, 'staff123', 0, 1, 'staff'),
-(3, 'Lim Mei Ling', 'mei.ling@college.edu', '0134567890', '880202-11-5678', 'Staff Quarters, Block B', 2, 'staff123', 0, 1, 'staff'),
-(4, 'IT Support Team', 'itsupport@college.edu', '0145678901', '900303-12-9012', 'IT Building, Room 101', 1, 'itstaff123', 0, 2, 'staff');
+INSERT INTO `staff` (`staff_id`, `name`, `email`, `phone`, `nric`, `gender`, `password`, `is_deleted`, `department_id`, `staff_role`) VALUES
+(1, 'System Administrator', 'admin', '0123456789', '800101-01-0001', 1, '12345', 0, 5, 'admin'),
+(2, 'Ahmad Maintenance', 'ahmad@college.edu', '012-1111111', '850101-10-1111', 1, '12345', 0, 1, 'staff'),
+(3, 'Sarah IT', 'sarah@college.edu', '012-2222222', '900202-10-2222', 2, '12345', 0, 2, 'staff'),
+(4, 'Raj Security', 'raj@college.edu', '012-3333333', '820303-10-3333', 1, '12345', 0, 4, 'staff'),
+(5, 'Mei Ling Cleaning', 'mei@college.edu', '012-4444444', '780404-10-4444', 2, '12345', 0, 3, 'staff');
 
 -- --------------------------------------------------------
 
@@ -225,7 +227,6 @@ CREATE TABLE `student` (
   `name` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL,
   `phone` varchar(255) NOT NULL,
-  `address` varchar(255) NOT NULL,
   `gender` tinyint(1) NOT NULL,
   `password` varchar(255) NOT NULL,
   `student_id` varchar(50) NOT NULL,
@@ -237,13 +238,12 @@ CREATE TABLE `student` (
 -- Dumping data for table `student`
 --
 
-INSERT INTO `student` (`name`, `email`, `phone`, `address`, `gender`, `password`, `student_id`, `room_number`, `is_deleted`) VALUES
-('Ali bin Ahmad', 'ali.ahmad@college.edu', '0123456789', 'Dormitory A, Room 101, College Campus', 1, '123', 'STU2024001', 'A-101', 0),
-('Siti binti Rahman', 'siti.rahman@college.edu', '0134567891', 'Dormitory B, Room 205, College Campus', 2, 'student123', 'STU2024002', 'B-205', 0),
-('Wei Chen', 'wei.chen@college.edu', '0118576424', 'Dormitory C, Room 312, College Campus', 1, '123456', 'STU2024003', 'C-312', 0),
-('Aina Sofea', 'aina.sofea@college.edu', '01128576424', 'Dormitory A, Room 108, College Campus', 2, '123', 'STU2024004', 'A-108', 0),
-('Alya Amira', 'test@gmail.com', '0127213527', 'test', 2, '123', 'STU2024005', 'A-102', 0),
-('Irdina', 'irdina@gmail.com', '0127213527', 'test', 2, 'test', 'STU2024007', 'A-102', 0);
+INSERT INTO `student` (`name`, `email`, `phone`, `gender`, `password`, `student_id`, `room_number`, `is_deleted`) VALUES
+('Ali bin Ahmad', 'ali.ahmad@college.edu', '0123456789', 1, '12345', 'STU2024001', 'A-101', 0),
+('Siti binti Rahman', 'siti.rahman@college.edu', '0134567891', 2, '12345', 'STU2024002', 'B-205', 0),
+('Wei Chen', 'wei.chen@college.edu', '0118576424', 1, '12345', 'STU2024003', 'C-312', 0),
+('Aina Sofea', 'aina.sofea@college.edu', '01128576424', 2, '12345', 'STU2024004', 'A-108', 0),
+('Muthu Sami', 'muthu@college.edu', '019-9998888', 1, '12345', 'STU2024005', 'D-401', 0);
 
 --
 -- Indexes for dumped tables
@@ -254,7 +254,8 @@ INSERT INTO `student` (`name`, `email`, `phone`, `address`, `gender`, `password`
 --
 ALTER TABLE `categories`
   ADD PRIMARY KEY (`category_id`),
-  ADD UNIQUE KEY `category_name_unique` (`category_name`);
+  ADD UNIQUE KEY `category_name_unique` (`category_name`),
+  ADD KEY `idx_department_id` (`department_id`);
 
 --
 -- Indexes for table `complaint`
@@ -309,7 +310,7 @@ ALTER TABLE `student`
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `complaint`
@@ -333,17 +334,23 @@ ALTER TABLE `dormitory`
 -- AUTO_INCREMENT for table `feedback`
 --
 ALTER TABLE `feedback`
-  MODIFY `feedback_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `feedback_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `staff`
 --
 ALTER TABLE `staff`
-  MODIFY `staff_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `staff_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `categories`
+--
+ALTER TABLE `categories`
+  ADD CONSTRAINT `fk_category_department` FOREIGN KEY (`department_id`) REFERENCES `department` (`department_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Constraints for table `complaint`
