@@ -301,8 +301,7 @@ function withdrawComplaint(complaintId) {
     }).then((result) => {
         if (result.isConfirmed) {
             // UPDATED: Set status to 'Closed' instead of 'Withdrawn'
-            // You could optionally add a note here via a separate API call if needed
-            updateStatusTo(complaintId, 'Closed', 'Complaint withdrawn and closed.');
+            updateStatusTo(complaintId, 'Closed', 'Complaint withdrawn and closed.',true);
         }
     });
 }
@@ -310,7 +309,7 @@ function withdrawComplaint(complaintId) {
 /**
  * Helper function to update a complaint's status via the API.
  */
-function updateStatusTo(complaintId, newStatus, successMessage) {
+function updateStatusTo(complaintId, newStatus, successMessage, autoReload = false) {
     var data = {
         complaint_id: complaintId,
         complaint_status: newStatus
@@ -323,7 +322,12 @@ function updateStatusTo(complaintId, newStatus, successMessage) {
         dataType: 'text',
         success: function(response) {
             if (response.trim() === 'success') {
-                successToast(successMessage); // Reloads page
+                successToast(successMessage);
+                if (autoReload) {
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 1200); // wait for toast animation
+                }
             } else {
                 errorMessage('Failed to update complaint status.');
             }

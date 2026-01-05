@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 
 <?php
@@ -20,7 +20,7 @@ include 'pages/header.php'; // Includes assets
             </div>
 
             <!-- This form ID is used by add.js -> addStudent -->
-            <form id="basicform" method="post" onsubmit="return false;">
+            <form id="basicform" method="post" onsubmit="addStudent(this); return false;">
                 <div class="mb-3" style="margin-top: 15px">
                     <label for="name" class="form-label">Full Name</label>
                     <input type="text" class="form-control" name="name" id="name" aria-describedby="nameHelp" required>
@@ -60,8 +60,7 @@ include 'pages/header.php'; // Includes assets
                     <input type="password" class="form-control" name="conf_password" id="conf_password" required>
                 </div>
                 <div class="d-grid">
-                    <!-- Calls addStudent from add.js -->
-                    <button class="btn btn-primary" onclick="addStudent(this.form)" type="button">Sign Up</button>
+                    <button class="btn btn-primary" type="submit">Sign Up</button>
                 </div>
             </form>
             <div class="mt-3 text-center">

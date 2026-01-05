@@ -412,16 +412,15 @@ function createStudent($data)
     mysqli_stmt_close($checkStmt);
 
     // $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-    // --- UPDATED SQL: Save student_id_number into student_id (PK) ---
-    $insertSql = "INSERT INTO student(student_id, name, email, phone, gender, password, room_number, is_deleted) 
-                  VALUES(?, ?, ?, ?, ?, ?, ?, ?, 0)";
+    $insertSql = "INSERT INTO student (student_id, name, email, phone, gender, password, room_number, is_deleted)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 0)";
 
     $insertStmt = mysqli_prepare($con, $insertSql);
     if ($insertStmt) {
         mysqli_stmt_bind_param(
             $insertStmt,
-            "ssssssss",
-            $student_id, // This is the new VARCHAR PK
+            "sssssss",
+            $student_id, 
             $name,
             $email,
             $phone,

@@ -18,7 +18,8 @@ include 'pages/header.php'; // Includes assets
                 <img src="assets/images/logo.png" alt="CCMS Logo" style="height: 40px;">
                 <h2 class="mb-0">- Sign In</h2>
             </div>
-            <form method="post" onsubmit="return false;">
+            <!-- This login function is in admin/assets/js/include/main.js -->
+            <form method="post" onsubmit="login(this); return false;">
                 <div class="mb-3" style="margin-top: 8px">
                     <label for="email" class="form-label"><b>Email Address</b></label>
                     <input type="text" placeholder="Enter Email" name="email" id="email" class="form-control" required>
@@ -29,7 +30,7 @@ include 'pages/header.php'; // Includes assets
                 </div>
                 <div class="d-grid">
                     <!-- This login function is in admin/assets/js/include/main.js -->
-                    <button type="button" onclick="login(this.form)" class="btn btn-primary">Sign In</button>
+                    <button type="submit" class="btn btn-primary">Sign In</button>
                 </div>
                 <div class="mt-3 text-center">
                     <!-- Link to the student registration page -->
