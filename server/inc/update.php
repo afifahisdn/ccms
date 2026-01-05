@@ -348,7 +348,6 @@ function updateStudentProfile($jsonData)
 
 /**
  * Updates a staff member's full profile.
- * Includes validation for required fields.
  */
 function updateStaffProfile($data) {
     include 'connection.php';
@@ -362,12 +361,7 @@ function updateStaffProfile($data) {
     $department_id = mysqli_real_escape_string($con, $data['department_id']);
     $staff_role = mysqli_real_escape_string($con, $data['staff_role']);
 
-    // --- VALIDATION ---
-    if (empty($name) || empty($phone) || empty($email) || empty($nric)) {
-        echo json_encode(['status' => 'error', 'message' => 'All fields are required.']);
-        return; // Stop execution
-    }
-
+    // Update logic
     $sql = "UPDATE staff SET name = ?, email = ?, phone = ?, nric = ?, gender = ?, department_id = ?, staff_role = ? WHERE staff_id = ?";
             
     $stmt = mysqli_prepare($con, $sql);
@@ -375,13 +369,11 @@ function updateStaffProfile($data) {
         mysqli_stmt_bind_param($stmt, "ssssiisi", $name, $email, $phone, $nric, $gender, $department_id, $staff_role, $staff_id);
         if (mysqli_stmt_execute($stmt)) {
             mysqli_stmt_close($stmt);
-             // Echo JSON for success
-            echo json_encode(['success' => true]); 
-            return;
+            return true;
         }
         mysqli_stmt_close($stmt);
     }
-    echo json_encode(['error' => 'Database error updating staff profile.']);
+    return false;
 }
 
 ?>
