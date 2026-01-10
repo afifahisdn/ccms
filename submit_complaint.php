@@ -104,7 +104,6 @@ include_once "server/inc/get.php";
                                 <select id="dormitory_id" class='form-control' name="dormitory_id" required>
                                     <option value="">-- Select Dormitory --</option>
                                     <?php
-                                    // Use new function
                                     $getallDorms = getAllDormitory();
                                     if ($getallDorms) {
                                         while ($dorm_row = mysqli_fetch_assoc($getallDorms)) { ?>
@@ -133,14 +132,11 @@ include_once "server/inc/get.php";
                         </div>
 
                         <div class="row">
-                            <!-- === UPDATED CATEGORY DROPDOWN === -->
                             <div class="col-md-6 mb-3">
                                 <label class="text-black" for="category_id">Category <span class="text-danger">*</span></label>
-                                <!-- The name is now "category_id" -->
                                 <select id="category_id" class='form-control' name="category_id" required>
                                     <option value="">-- Select Category --</option>
                                     <?php
-                                    // Use new function to get categories from DB
                                     $getallCategories = getAllCategories();
                                     if ($getallCategories) {
                                         while ($cat_row = mysqli_fetch_assoc($getallCategories)) {
@@ -163,23 +159,32 @@ include_once "server/inc/get.php";
                                     <option value="critical">Critical</option>
                                 </select>
                             </div>
+                        </div><br>
+
+                        <!-- Photo Upload with AI Trigger -->
+                        <div class="row form-group mb-4">
+                            <div class="col-md-12">
+                                <label class="text-black" for="photo">Upload Photo (AI Auto-Describe)</label>
+                                <!-- onchange calls generateDescription() in homejs.js -->
+                                <input type="file" name="photo" id="photo" class="form-control-file" onchange="generateDescription(this)">
+                                <small class="form-text text-muted">Upload a photo (Max 5MB). AI will generate a description.</small>
+                                
+                                <!-- Loading Spinner -->
+                                <div id="ai-loading" style="display:none; color: #007bff; margin-top: 10px;">
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    <strong>AI is analyzing your image... please wait...</strong>
+                                </div>
+                            </div>
                         </div>
 
+                        <!-- Description Field -->
                         <div class="row form-group mb-3">
                             <div class="col-md-12">
                                 <label class="text-black" for="complaint_description">Description</label>
-                                <textarea name="complaint_description" id="complaint_description" cols="30" rows="5" class="form-control" placeholder="Please provide as much detail as possible about the issue..."></textarea>
+                                <textarea name="complaint_description" id="complaint_description" cols="30" rows="5" class="form-control" placeholder="Description will auto-fill here..."></textarea>
                             </div>
                         </div>
-
-                        <div class="row form-group mb-4">
-                            <div class="col-md-12">
-                                <label class="text-black" for="photo">Upload Photo (Optional)</label>
-                                <input type="file" name="photo" id="photo" class="form-control-file">
-                                <small class="form-text text-muted">Max file size: 5MB. Allowed types: JPG, PNG, GIF.</small>
-                            </div>
-                        </div>
-
+                        
                         <!-- Hidden student_id (VARCHAR PK) -->
                         <input type="hidden" name="student_id" id="student_id" value="<?php echo htmlspecialchars($_SESSION["student_id"]); ?>">
 
@@ -196,6 +201,9 @@ include_once "server/inc/get.php";
     </div>
 
     <?php include "pages/footer.php"; ?>
+
+    <!-- PUTER.JS Library (Required for Free AI) -->
+    <script src="https://js.puter.com/v2/"></script>
 
     <!-- JS Includes (loaded via pages/header.php -> assets.php) -->
     <script src="js/jquery-migrate-3.0.1.min.js"></script>

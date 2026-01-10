@@ -337,3 +337,71 @@ function updateStatusTo(complaintId, newStatus, successMessage, autoReload = fal
         }
     });
 }
+
+/**
+ * AI Image Describer using Puter.js (Free OpenAI)
+ * Triggers when student uploads a photo.
+ */
+function generateDescription(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const descField = document.getElementById('complaint_description');
+        const loadingDiv = document.getElementById('ai-loading');
+
+        // 1. Basic Validation
+        if (file.size > 5 * 1024 * 1024) {
+            alert("File is too large (Max 5MB). AI scan skipped.");
+            return;
+        }
+
+        // 2. Show Loading State
+        loadingDiv.style.display = 'block';
+        descField.setAttribute('readonly', true);
+        const originalPlaceholder = descField.placeholder;
+        descField.placeholder = "AI is thinking...";
+
+        // 3. Convert Image to Base64
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const base64Image = e.target.result;
+
+            // 4. Call Puter AI (Free GPT-4o-mini)
+            // Note: Puter might ask you to sign in via popup the first time you run this.
+            puter.ai.chat([
+                {
+                    role: "user",
+                    content: [
+                        { type: "text", text: "Describe the damage or maintenance issue in this image briefly for a complaint report. Be concise." },
+                        { type: "image_url", image_url: { url: base64Image } }
+                    ]
+                }
+            ]).then(response => {
+                // 5. Success
+                const aiText = response?.message?.content || "Could not generate description.";
+                
+                loadingDiv.style.display = 'none';
+                descField.removeAttribute('readonly');
+                descField.placeholder = originalPlaceholder;
+
+                // Auto-fill or Append
+                const currentText = descField.value.trim();
+                if (currentText) {
+                    descField.value = currentText + "\n\n[AI Analysis]: " + aiText;
+                } else {
+                    descField.value = aiText;
+                }
+
+            }).catch(error => {
+                // 6. Error Handling
+                console.error("Puter AI Error:", error);
+                loadingDiv.style.display = 'none';
+                descField.removeAttribute('readonly');
+                descField.placeholder = originalPlaceholder;
+                // Silent fail or alert
+                alert("AI service unavailable right now. Please type description manually.");
+            });
+        };
+        
+        reader.readAsDataURL(file);
+    }
+}
