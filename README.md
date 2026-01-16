@@ -100,15 +100,19 @@ The system consists of **three user roles**, each with defined permissions.
 
 ---
 
-### **3.4 AI-Assisted Reporting (Pending Feature)**
+### **3.4 AI-Assisted Reporting**
+
+The system includes an AI-powered image describer to assist students during complaint submission.
 
 **Process:**
 
 1. Student uploads an issue photo (JPEG/PNG)
-2. System sends the image to an AI Vision model
-3. AI returns a detailed issue description
-4. Description auto-fills the text box
-5. Student reviews and edits before final submission
+2. Image is converted to Base64 on the client side
+3. Image data is sent securely to a cloud-based AI service
+4. AI analyzes the image and generates a detailed issue description
+   *(e.g., “Leaking faucet in the bathroom”)*
+5. Generated text automatically fills the description field
+6. Student reviews and edits before final submission
 
 ---
 
@@ -158,7 +162,7 @@ The system consists of **three user roles**, each with defined permissions.
 
 ---
 
-## **5. How to Navigate the Code**
+### **How to Navigate the Code**
 
 | Task                        | File/Folder                                |
 | --------------------------- | ------------------------------------------ |
@@ -166,6 +170,29 @@ The system consists of **three user roles**, each with defined permissions.
 | Change database queries     | `/server/inc/get.php`, `update.php`, etc.  |
 | Update UI layout            | PHP files in `/admin/` or root folder      |
 | Change global site settings | Through `admin/settings.php` (recommended) |
+
+---
+
+## **5. AI Technology Stack**
+
+The AI-assisted reporting feature is implemented entirely on the **client side**, eliminating the need for complex backend AI configuration.
+
+**AI Integration Details:**
+
+* Library: **Puter.js (v2)**
+* Model: **OpenAI GPT-4o-mini** (via Puter free-tier interface)
+* Execution: Client-side (browser-based)
+* Purpose: Image-to-text issue description generation
+
+**Workflow Summary:**
+
+1. User selects an image on the frontend
+2. Image is converted to Base64 in the browser
+3. Data is sent to Puter’s AI endpoint
+4. AI-generated description is returned
+5. Text is injected directly into the complaint form
+
+⚠️ Internet connection is required for this feature to function.
 
 ---
 
