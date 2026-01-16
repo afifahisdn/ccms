@@ -276,7 +276,7 @@ function addStaff($data)
     $phone = mysqli_real_escape_string($con, $data["phone"]);
     $nric = mysqli_real_escape_string($con, $data["nric"]);
     $gender = mysqli_real_escape_string($con, $data["gender"]);
-    $password = mysqli_real_escape_string($con, $data["password"]);
+    $password = mysqli_real_escape_string($con, $data['password']);
     $department_id = mysqli_real_escape_string($con, $data["department_id"]);
     $staff_role = mysqli_real_escape_string($con, $data["staff_role"]);
 
@@ -292,8 +292,8 @@ function addStaff($data)
     $count = checkStaffOrStudentByEmail($email);
 
     if ($count == 0) {
-        // $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-        $sql = "INSERT INTO staff(name, email, phone, nric, gender, password, is_deleted, department_id, staff_role) 
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+        $sql = "INSERT INTO staff(name, email, phone, nric, gender, hashed_password, is_deleted, department_id, staff_role) 
                 VALUES(?, ?, ?, ?, ?, ?, ?, 0, ?, ?)";
 
         $stmt = mysqli_prepare($con, $sql);
@@ -306,7 +306,7 @@ function addStaff($data)
                 $phone,
                 $nric,
                 $gender,
-                $password, // Use $hashed_password here
+                $hashed_password, 
                 $department_id,
                 $staff_role
             );
@@ -411,8 +411,8 @@ function createStudent($data)
     }
     mysqli_stmt_close($checkStmt);
 
-    // $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-    $insertSql = "INSERT INTO student (student_id, name, email, phone, gender, password, room_number, is_deleted)
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+    $insertSql = "INSERT INTO student (student_id, name, email, phone, gender, hashed_password, room_number, is_deleted)
                     VALUES (?, ?, ?, ?, ?, ?, ?, 0)";
 
     $insertStmt = mysqli_prepare($con, $insertSql);
@@ -425,7 +425,7 @@ function createStudent($data)
             $email,
             $phone,
             $gender,
-            $password, // Use $hashed_password
+            $hashed_password,
             $room_number
         );
 
@@ -441,5 +441,3 @@ function createStudent($data)
         echo json_encode(["error" => true, "message" => "Database error preparing statement."]);
     }
 }
-
-?>

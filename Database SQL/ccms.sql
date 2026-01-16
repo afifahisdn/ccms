@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 24, 2025 at 03:56 PM
+-- Generation Time: Jan 16, 2026 at 03:55 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -39,15 +39,15 @@ CREATE TABLE `categories` (
 --
 
 INSERT INTO `categories` (`category_id`, `category_name`, `department_id`, `is_deleted`) VALUES
-(1, 'plumbing', 1, 0),
-(2, 'electrical', 1, 0),
-(3, 'furniture', 1, 0),
-(4, 'cleaning', 3, 0),
-(5, 'internet', 2, 0),
-(6, 'security', 4, 0),
-(7, 'pest_control', 3, 0),
-(8, 'heating_cooling', 1, 0),
-(9, 'other', 5, 0);
+(1, 'Plumbing', 1, 0),
+(2, 'Electrical', 1, 0),
+(3, 'Furniture', 1, 0),
+(4, 'Cleaning', 3, 0),
+(5, 'Internet', 2, 0),
+(6, 'Security', 4, 0),
+(7, 'Pest Control', 3, 0),
+(8, 'Heating Cooling', 1, 0),
+(9, 'Other', 5, 0);
 
 -- --------------------------------------------------------
 
@@ -79,9 +79,9 @@ CREATE TABLE `complaint` (
 --
 
 INSERT INTO `complaint` (`complaint_id`, `student_id`, `category_id`, `dormitory_id`, `room_number`, `complaint_title`, `complaint_description`, `photo`, `urgency_level`, `complaint_status`, `assigned_staff_id`, `resolution_notes`, `is_deleted`, `created_at`, `date_updated`, `date_resolved`) VALUES
-(1000001, 'STU2024001', 1, 1, 'A-101', 'Leaking Faucet', 'The faucet in the bathroom is dripping constantly.', NULL, 'low', 'Open', NULL, NULL, 0, '2025-11-24 21:33:49', '2025-11-24 21:39:29', NULL),
+(1000001, 'STU2024001', 1, 1, 'A-101', 'Leaking Faucet', 'The faucet in the bathroom is dripping constantly.', 'server/uploads/complaints/broken-faucet.jpg, 'low', 'Open', NULL, NULL, 0, '2025-11-24 21:33:49', '2025-11-24 21:39:29', NULL),
 (1000002, 'STU2024002', 5, 3, 'B-205', 'No Internet Access', 'I cannot connect to the WiFi in my room.', NULL, 'high', 'In Progress', 3, NULL, 0, '2025-11-23 21:33:49', '2025-11-24 21:33:49', NULL),
-(1000003, 'STU2024003', 2, 5, 'C-312', 'Broken Light Switch', 'The light switch is stuck.', NULL, 'medium', 'Resolved', 2, 'Replaced the switch plate.', 0, '2025-11-21 21:33:49', '2025-11-23 19:33:49', '2025-11-23 19:33:49'),
+(1000003, 'STU2024003', 2, 5, 'C-312', 'Broken Light Switch', 'The light switch is stuck.', NULL, 'medium', 'Closed', 2, 'Replaced the switch plate.', 0, '2025-11-21 21:33:49', '2026-01-11 01:19:31', '2025-11-23 19:33:49'),
 (1000004, 'STU2024004', 4, 1, 'A-108', 'Room Needs Cleaning', 'Dusty floor.', NULL, 'low', 'Withdrawn', NULL, NULL, 0, '2025-11-19 21:33:49', '2025-11-20 21:33:49', NULL),
 (1000005, 'STU2024005', 6, 6, 'D-401', 'Lost ID Card', 'I lost my ID card near the gym.', NULL, 'medium', 'Closed', 4, 'ID card found and returned to student affairs.', 0, '2025-11-14 21:33:49', '2025-11-16 21:33:49', '2025-11-16 21:33:49');
 
@@ -211,11 +211,11 @@ CREATE TABLE `staff` (
 --
 
 INSERT INTO `staff` (`staff_id`, `name`, `email`, `phone`, `nric`, `gender`, `password`, `is_deleted`, `department_id`, `staff_role`) VALUES
-(1, 'System Administrator', 'admin', '0123456789', '800101-01-0001', 1, '12345', 0, 5, 'admin'),
-(2, 'Ahmad Maintenance', 'ahmad@college.edu', '012-1111111', '850101-10-1111', 1, '12345', 0, 1, 'staff'),
-(3, 'Sarah IT', 'sarah@college.edu', '012-2222222', '900202-10-2222', 2, '12345', 0, 2, 'staff'),
-(4, 'Raj Security', 'raj@college.edu', '012-3333333', '820303-10-3333', 1, '12345', 0, 4, 'staff'),
-(5, 'Mei Ling Cleaning', 'mei@college.edu', '012-4444444', '780404-10-4444', 2, '12345', 0, 3, 'staff');
+(1, 'System Administrator', 'admin', '0123456789', '800101-01-0001', 1, '$2y$10$dc3yGGCRB2SksAvB7V7TK.4S44CI6SHPFwXKg3PPy.YXRc0hwXqIa', 0, 5, 'admin'),
+(2, 'Ahmad Maintenance', 'ahmad@college.edu', '012-1111111', '850101-10-1111', 1, '$2y$10$9ywaHUxIiRmh04oftRuJFei9wR/dhShfUGzp02VBJ6rq5IlUs44dq', 0, 1, 'staff'),
+(3, 'Sarah IT', 'sarah@college.edu', '012-2222222', '900202-10-2222', 2, '$2y$10$uLvepFFLT7hzsaeLiV9gee/c9PSyNOfpm5qGKl3pvNbxmwy8A74NK', 0, 2, 'staff'),
+(4, 'Raj Security', 'raj@college.edu', '012-3333333', '820303-10-3333', 1, '$2y$10$OFdooaHx.1qwL1Fk3H/J4.uXNhBapjZprCKQq8WoiDI18uoFtvina', 0, 4, 'staff'),
+(5, 'Mei Ling Cleaning', 'mei@college.edu', '012-4444444', '780404-10-4444', 2, '$2y$10$imJA73fGqkUYa54JWvJZUeK3hVANiQOMuJvOzP802Ewzy9eUmpWxC', 0, 3, 'staff');
 
 -- --------------------------------------------------------
 
@@ -239,11 +239,11 @@ CREATE TABLE `student` (
 --
 
 INSERT INTO `student` (`name`, `email`, `phone`, `gender`, `password`, `student_id`, `room_number`, `is_deleted`) VALUES
-('Ali bin Ahmad', 'ali.ahmad@college.edu', '0123456789', 1, '12345', 'STU2024001', 'A-101', 0),
-('Siti binti Rahman', 'siti.rahman@college.edu', '0134567891', 2, '12345', 'STU2024002', 'B-205', 0),
-('Wei Chen', 'wei.chen@college.edu', '0118576424', 1, '12345', 'STU2024003', 'C-312', 0),
-('Aina Sofea', 'aina.sofea@college.edu', '01128576424', 2, '12345', 'STU2024004', 'A-108', 0),
-('Muthu Sami', 'muthu@college.edu', '019-9998888', 1, '12345', 'STU2024005', 'D-401', 0);
+('Ali bin Ahmad', 'ali.ahmad@college.edu', '0123456789', 1, '$2y$10$LQBGAAK1CjUZ655axBAltO7RDJ0GyEMpAzG7OItMAznvjU0ociNhi', 'STU2024001', 'A-101', 0),
+('Siti binti Rahman', 'siti.rahman@college.edu', '0134567891', 2, '$2y$10$s5HSUk2dQlTaG6gOWIJ0Eep73TRMQRLQmBVYPmDME6vgdkPOCwIq6', 'STU2024002', 'B-205', 0),
+('Wei Chen', 'wei.chen@college.edu', '0118576424', 1, '$2y$10$RyCZVBASaVpWHO57kiWqH.yBfs.bGGK6e5AefKhvfzarLL1bQYSci', 'STU2024003', 'C-312', 0),
+('Aina Sofea', 'aina.sofea@college.edu', '01128576424', 2, '$2y$10$xkKVmKsWeeJrH6fl52uNsO67ixvDDYSg2pp5OAFRWszQOpsLSg/Dm', 'STU2024004', 'A-108', 0),
+('Muthu Sami', 'muthu@college.edu', '019-9998888', 1, '$2y$10$LweKAarYnU8U5YU0nDJXpuvKAKzZbM3s/hdfngvIwmgEJbba1.Tm.', 'STU2024005', 'D-401', 0);
 
 --
 -- Indexes for dumped tables

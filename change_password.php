@@ -241,9 +241,6 @@ include "auth.php";
                             if (!form.checkValidity()) {
                                 event.preventDefault()
                                 event.stopPropagation()
-                                if (typeof errorMessage === 'function') {
-                                    errorMessage('Please correct the errors in the form.');
-                                }
                             }
                             form.classList.add('was-validated')
                         }, false);
@@ -253,5 +250,4 @@ include "auth.php";
     </script>
 
 </body>
-
 </html>

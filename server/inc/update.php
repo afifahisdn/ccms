@@ -61,6 +61,10 @@ function updateDataTable($data, $staff_id, $role)
     $value = mysqli_real_escape_string($con, $data['value']);
     $table = mysqli_real_escape_string($con, $data['table']);
 
+    if ($field === 'password') {
+        $value = password_hash($value, PASSWORD_DEFAULT);
+    }
+
     // Security check for table/field names
     if (!preg_match('/^[a-zA-Z0-9_]+$/', $id_fild) || 
         !preg_match('/^[a-zA-Z0-9_]+$/', $field) || 
@@ -375,5 +379,3 @@ function updateStaffProfile($data) {
     }
     return false;
 }
-
-?>

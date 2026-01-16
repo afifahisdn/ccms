@@ -538,22 +538,17 @@ function getAllStudentDataArray()
 function checkStudentPassword($data)
 {
     include "connection.php";
-    $student_id = $data["student_id"]; // This is now VARCHAR
-    $password = $data["password"];
+    $student_id = mysqli_real_escape_string($con, $_POST['student_id']);
+    $current_password = $_POST['password'];
 
-    $sql = "SELECT password FROM student WHERE is_deleted = 0 AND student_id = ?";
-    $stmt = mysqli_prepare($con, $sql);
-    if ($stmt) {
-        mysqli_stmt_bind_param($stmt, "s", $student_id); // 's' for VARCHAR
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+    $query = "SELECT password FROM student WHERE student_id = '$student_id'";
+    $result = mysqli_query($con, $query);
 
-        if ($row && $password === $row['password']) {
-            echo 1; // Match
+    if ($row = mysqli_fetch_assoc($result)) {
+        if (password_verify($current_password, $row['password'])) {
+            echo "1"; // Password matches
         } else {
-            echo 0; // No match
+            echo "0"; // Wrong password
         }
     } else {
         error_log("Error preparing checkStudentPassword statement: " . mysqli_error($con));
@@ -592,14 +587,15 @@ function checkCurrentStudentEmail($data)
  */
 function getLogin($data)
 {
-    include "connection.php";
-    $email = $data["email"];
-    $password = $data["password"];
-    $value = "";
+    global $con;
+    $email = mysqli_real_escape_string($con, $data['email']);
+    $password = $data['password']; // Raw password
+    $value = "error";
 
-    // Check staff/admin table
-    $loginStaffSql = "SELECT staff_id, password, staff_role, email FROM staff WHERE email = ? AND is_deleted = 0";
+    // 1. Check Staff/Admin Table
+    $loginStaffSql = "SELECT staff_id, password, staff_role, name, email FROM staff WHERE email = ? AND is_deleted = 0";
     $staffStmt = mysqli_prepare($con, $loginStaffSql);
+    
     if ($staffStmt) {
         mysqli_stmt_bind_param($staffStmt, "s", $email);
         mysqli_stmt_execute($staffStmt);
@@ -607,36 +603,40 @@ function getLogin($data)
         $staffRow = mysqli_fetch_assoc($staffResult);
         mysqli_stmt_close($staffStmt);
 
-        if ($staffRow && $password === $staffRow['password']) {
+        // Verify Hash
+        if ($staffRow && password_verify($password, $staffRow['password'])) {
+            if (session_status() === PHP_SESSION_NONE) session_start();
             $_SESSION["staff_id"] = $staffRow["staff_id"];
+            $_SESSION["name"] = $staffRow["name"];
+            $_SESSION["role"] = $staffRow["staff_role"]; // Use consistent session key 'role' or 'user_role'
             $_SESSION["user_role"] = $staffRow["staff_role"];
-            $_SESSION["admin_email"] = $staffRow["email"];
-            $value = "admin";
-        }
-    } else {
-        error_log("Error preparing staff login statement: " . mysqli_error($con));
-    }
-
-    // If not found in staff, check student table
-    if (empty($value)) {
-        $loginStudentSql = "SELECT student_id, password FROM student WHERE email = ? AND is_deleted = 0";
-        $studentStmt = mysqli_prepare($con, $loginStudentSql);
-        if ($studentStmt) {
-            mysqli_stmt_bind_param($studentStmt, "s", $email);
-            mysqli_stmt_execute($studentStmt);
-            $studentResult = mysqli_stmt_get_result($studentStmt);
-            $studentRow = mysqli_fetch_assoc($studentResult);
-            mysqli_stmt_close($studentStmt);
-
-            if ($studentRow && $password === $studentRow['password']) {
-                $_SESSION["student_id"] = $studentRow["student_id"]; // Now stores the VARCHAR student_id
-                $value = "customer";
-            }
-        } else {
-            error_log("Error preparing student login statement: " . mysqli_error($con));
+            $_SESSION["email"] = $staffRow["email"];
+            return "admin";
         }
     }
-    echo $value;
+
+    // 2. If not found in staff, check student table
+    $loginStudentSql = "SELECT student_id, password, name, email FROM student WHERE email = ? AND is_deleted = 0";
+    $studentStmt = mysqli_prepare($con, $loginStudentSql);
+    
+    if ($studentStmt) {
+        mysqli_stmt_bind_param($studentStmt, "s", $email);
+        mysqli_stmt_execute($studentStmt);
+        $studentResult = mysqli_stmt_get_result($studentStmt);
+        $studentRow = mysqli_fetch_assoc($studentResult);
+        mysqli_stmt_close($studentStmt);
+
+        // Verify Hash
+        if ($studentRow && password_verify($password, $studentRow['password'])) {
+            if (session_status() === PHP_SESSION_NONE) session_start();
+            $_SESSION["student_id"] = $studentRow["student_id"];
+            $_SESSION["name"] = $studentRow["name"];
+            $_SESSION["email"] = $studentRow["email"];
+            return "customer";
+        }
+    }
+
+    return "error";
 }
 
 /**
@@ -646,18 +646,21 @@ function getLogin($data)
 function checkStaffPasswordByEmail($data)
 {
     include "connection.php";
-    $email = $data["email"];
-    $password = $data["password"];
+    $email = mysqli_real_escape_string($con, $_POST['email']);
+    $current_password = $_POST['password'];
 
-    $sql = "SELECT password FROM staff WHERE password = ? AND email = ? AND is_deleted = 0";
-    $stmt = mysqli_prepare($con, $sql);
-    if ($stmt) {
-        mysqli_stmt_bind_param($stmt, "ss", $password, $email);
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_store_result($stmt);
-        $count = mysqli_stmt_num_rows($stmt);
-        mysqli_stmt_close($stmt);
-        echo $count;
+    $query = "SELECT password FROM staff WHERE email = '$email'";
+    $result = mysqli_query($con, $query);
+            
+    // Clear buffer before echoing
+    ob_clean(); 
+            
+    if ($row = mysqli_fetch_assoc($result)) {
+        if (password_verify($current_password, $row['password'])) {
+            echo "1"; 
+        } else {
+            echo "0"; 
+        }
     } else {
         error_log("Error preparing checkStaffPasswordByEmail statement: " . mysqli_error($con));
         echo 0;
@@ -781,5 +784,3 @@ function getAllSettings()
     }
     return $result;
 }
-
-?>

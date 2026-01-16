@@ -122,5 +122,3 @@ function permanantDeleteDataTable($jsonData)
         echo json_encode(["success" => false, "error" => $error_message]);
     }
 }
-
-?>

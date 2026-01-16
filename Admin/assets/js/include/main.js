@@ -250,10 +250,6 @@ changePasswordAdmin = (form) => {
         errorMessage("New passwords do not match.");
         return;
     }
-    if (userEmail === "") {
-        errorMessage("User email is missing. Cannot change password.");
-        return;
-    }
 
     // Check the current password
     if (checkStaffPasswordByEmail(currentPassword, userEmail) > 0) {
@@ -262,7 +258,7 @@ changePasswordAdmin = (form) => {
             field: "password",
             value: newPassword,
             id_fild: "email",
-            table: "staff", // Corrected table name
+            table: "staff",
         };
 
         $.ajax({
@@ -303,8 +299,10 @@ checkStaffPasswordByEmail = (password, email) => {
         dataType: 'text',
         success: function(response) {
             console.log("Check Staff Password Response:", response);
+            let cleanResponse = response.toString().trim();
             try {
                 result_count = parseInt(response.trim());
+                console.log("Parsed Result Count:", result_count);
             } catch (e) {
                 console.error("Error parsing checkStaffPasswordByEmail response:", response);
             }

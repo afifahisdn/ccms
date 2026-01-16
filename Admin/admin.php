@@ -21,6 +21,6 @@ if (!isset($_SESSION['staff_id'])) {
 // Set global variables for all admin pages to use
 $logged_in_staff_id = $_SESSION['staff_id'] ?? 0;
 $logged_in_user_role = $_SESSION['user_role'] ?? 'staff'; // Default to 'staff' if not set
-$logged_in_user_email = $_SESSION['admin_email'] ?? ''; // From getLogin()
+$logged_in_user_email = $_SESSION['email'] ?? ''; // From getLogin()
 
 ?>

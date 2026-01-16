@@ -16,6 +16,3 @@ if (!$con) {
 
 // Set charset to utf8mb4 for full unicode support
 mysqli_set_charset($con, "utf8mb4");
-
-?>
-

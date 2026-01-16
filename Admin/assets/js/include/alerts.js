@@ -194,7 +194,7 @@ function successToastwithLogout(message = 'Action successful! Please log in agai
         position: 'center',
         onClosing: function() {
             // Redirects to the student logout script in the root folder
-            window.location.href = 'logout.php'; 
+            window.location.href = 'admin/logout.php'; 
         }
     });
 }
