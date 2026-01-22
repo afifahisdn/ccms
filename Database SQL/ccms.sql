@@ -79,7 +79,7 @@ CREATE TABLE `complaint` (
 --
 
 INSERT INTO `complaint` (`complaint_id`, `student_id`, `category_id`, `dormitory_id`, `room_number`, `complaint_title`, `complaint_description`, `photo`, `urgency_level`, `complaint_status`, `assigned_staff_id`, `resolution_notes`, `is_deleted`, `created_at`, `date_updated`, `date_resolved`) VALUES
-(1000001, 'STU2024001', 1, 1, 'A-101', 'Leaking Faucet', 'The faucet in the bathroom is dripping constantly.', 'server/uploads/complaints/broken-faucet.jpg, 'low', 'Open', NULL, NULL, 0, '2025-11-24 21:33:49', '2025-11-24 21:39:29', NULL),
+(1000001, 'STU2024001', 1, 1, 'A-101', 'Leaking Faucet', 'The faucet in the bathroom is dripping constantly.', 'server/uploads/complaints/broken-faucet.jpg', 'low', 'Open', NULL, NULL, 0, '2025-11-24 21:33:49', '2025-11-24 21:39:29', NULL),
 (1000002, 'STU2024002', 5, 3, 'B-205', 'No Internet Access', 'I cannot connect to the WiFi in my room.', NULL, 'high', 'In Progress', 3, NULL, 0, '2025-11-23 21:33:49', '2025-11-24 21:33:49', NULL),
 (1000003, 'STU2024003', 2, 5, 'C-312', 'Broken Light Switch', 'The light switch is stuck.', NULL, 'medium', 'Closed', 2, 'Replaced the switch plate.', 0, '2025-11-21 21:33:49', '2026-01-11 01:19:31', '2025-11-23 19:33:49'),
 (1000004, 'STU2024004', 4, 1, 'A-108', 'Room Needs Cleaning', 'Dusty floor.', NULL, 'low', 'Withdrawn', NULL, NULL, 0, '2025-11-19 21:33:49', '2025-11-20 21:33:49', NULL),

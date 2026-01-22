@@ -107,6 +107,15 @@ try {
                 echo json_encode(["error" => "Failed to add complaint."]);
             }
             break;
+        case 'resolveComplaint':
+            ob_clean();
+            header('Content-Type: application/json');
+            
+            if (session_status() === PHP_SESSION_NONE) session_start();
+            $staff_id = $_SESSION['staff_id'] ?? 0;
+
+            resolveComplaint($_POST, $staff_id);
+            exit;
         
         // --- Admin Complaint List ---
         case "getFilteredComplaints":

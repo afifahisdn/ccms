@@ -356,12 +356,16 @@ $show_clear_button = !empty($filters); // Show "Clear" if any filters are set
                                                 </div>
                                             </div>
                                         <?php endif; ?>
-                                        <?php if (!empty($row["resolution_notes"])) : ?>
-                                            <div class="row mt-3">
-                                                <div class="col-md-12">
-                                                    <strong class="text-success">Resolution Notes:</strong><br>
-                                                    <p class="text-muted" style="white-space: pre-wrap;"><?php echo htmlspecialchars($row["resolution_notes"]); ?></p>
-                                                </div>
+                                        <?php 
+                                            if (!empty($row["resolution_notes"])) : 
+                                        ?>
+                                            <div class="alert mt-4 shadow-sm" style="border-left: 5px solid #28a745; background-color: #e5f6ee;">
+                                                <h6 class="alert-heading text-success"><i class="bi bi-check-circle-fill me-2"></i> Resolution Details</h6>
+                                                <p class="mb-0 mt-2" style="white-space: pre-wrap; color: #333;"><?php echo htmlspecialchars($row["resolution_notes"]); ?></p>
+                                                <hr>
+                                                <p class="mb-0 small text-muted">
+                                                    <em>Resolved on: <?php echo date("d M Y, h:i A", strtotime($row["date_resolved"])); ?></em>
+                                                </p>
                                             </div>
                                         <?php endif; ?>
                                     </div>

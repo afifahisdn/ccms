@@ -294,6 +294,56 @@ function updateComplaintStatus($data)
 }
 
 /**
+ * Specifically handles resolving a complaint with notes.
+ */
+function resolveComplaint($data, $staff_id)
+{
+    global $con;
+    
+    $complaint_id = mysqli_real_escape_string($con, $data['complaint_id']);
+    $notes = mysqli_real_escape_string($con, $data['resolution_notes']);
+    
+    // 1. Check if we need to auto-assign the staff member
+    $check_sql = "SELECT assigned_staff_id FROM complaint WHERE complaint_id = ?";
+    $stmt_check = mysqli_prepare($con, $check_sql);
+    mysqli_stmt_bind_param($stmt_check, "i", $complaint_id);
+    mysqli_stmt_execute($stmt_check);
+    $result = mysqli_stmt_get_result($stmt_check);
+    $row = mysqli_fetch_assoc($result);
+    mysqli_stmt_close($stmt_check);
+
+    $assign_sql = "";
+    // If currently unassigned and a staff member is doing this, assign them.
+    if ($row && $row['assigned_staff_id'] === NULL && $staff_id > 0) {
+        $assign_sql = ", assigned_staff_id = '$staff_id'";
+    }
+
+    // 2. Update Status, Notes, Dates, and potentially Assignment
+    $sql = "UPDATE complaint 
+            SET complaint_status = 'Resolved', 
+                resolution_notes = ?, 
+                date_resolved = NOW(), 
+                date_updated = NOW() 
+                $assign_sql
+            WHERE complaint_id = ?";
+            
+    $stmt = mysqli_prepare($con, $sql);
+    if ($stmt) {
+        // "si" -> string (notes), integer (complaint_id)
+        mysqli_stmt_bind_param($stmt, "si", $notes, $complaint_id);
+        
+        if (mysqli_stmt_execute($stmt)) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'error' => mysqli_stmt_error($stmt)]);
+        }
+        mysqli_stmt_close($stmt);
+    } else {
+        echo json_encode(['success' => false, 'error' => mysqli_error($con)]);
+    }
+}
+
+/**
  * Updates student profile details.
  *
  * @param string $jsonData JSON string containing student data.
@@ -364,6 +414,19 @@ function updateStaffProfile($data) {
     $gender = mysqli_real_escape_string($con, $data['gender']);
     $department_id = mysqli_real_escape_string($con, $data['department_id']);
     $staff_role = mysqli_real_escape_string($con, $data['staff_role']);
+
+    // Check email exists (exclude current user)
+    $checkSql = "SELECT staff_id FROM staff WHERE email = ? AND staff_id != ?";
+    $checkStmt = mysqli_prepare($con, $checkSql);
+    mysqli_stmt_bind_param($checkStmt, "si", $email, $staff_id);
+    mysqli_stmt_execute($checkStmt);
+    mysqli_stmt_store_result($checkStmt);
+
+    if (mysqli_stmt_num_rows($checkStmt) > 0) {
+        mysqli_stmt_close($checkStmt);
+        return ["success" => false, "error" => "Email already exists."];
+    }
+    mysqli_stmt_close($checkStmt);
 
     // Update logic
     $sql = "UPDATE staff SET name = ?, email = ?, phone = ?, nric = ?, gender = ?, department_id = ?, staff_role = ? WHERE staff_id = ?";

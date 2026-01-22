@@ -92,7 +92,64 @@ function confirmStatusChange(selectElement, complaintId, currentStatus) {
         return;
     }
 
-    if (newStatus === "Closed") {
+
+    // 1. Handle "Resolved" Status - Ask for Notes
+    if (newStatus === 'Resolved') {
+        Swal.fire({
+            title: 'Mark as Resolved?',
+            text: 'Please enter the details of the resolution:',
+            input: 'textarea',
+            inputPlaceholder: 'e.g., Replaced the broken pipe, tested and verified...',
+            showCancelButton: true,
+            confirmButtonText: 'Resolve & Save',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#28a745',
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'You must write a resolution note!';
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const notes = result.value;
+                
+                // CORRECTED: Use 'complaintId' (the function parameter)
+                var resolveData = {
+                    complaint_id: complaintId, 
+                    resolution_notes: notes
+                };
+                
+                $.ajax({
+                    method: "POST",
+                    url: "../server/api.php?function_code=resolveComplaint",
+                    data: resolveData,
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            if(typeof successToast_RN === 'function') {
+                                successToast_RN("Complaint Resolved Successfully!");
+                            } else {
+                                console.log("Complaint Resolved Successfully!"); 
+                            }
+                            setTimeout(() => window.location.reload(), 1000);
+                        } else {
+                            errorMessage(response.error || "Failed to resolve complaint.");
+                            selectElement.value = oldStatus; // Revert
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("AJAX Error:", error);
+                        errorMessage("An error occurred connecting to server.");
+                        selectElement.value = oldStatus;
+                    }
+                });
+            } else {
+                // User clicked Cancel - Revert dropdown
+                selectElement.value = oldStatus;
+            }
+        });
+    // 2. Handle "Closed" Status (Admin Only) - Warning
+    } else if (newStatus === "Closed") {
         Swal.fire({
             title: 'Are you sure?',
             text: "Setting this complaint to 'Closed' is final. The student cannot re-open it. Do you want to proceed?",
@@ -112,7 +169,7 @@ function confirmStatusChange(selectElement, complaintId, currentStatus) {
             }
         });
     } else {
-        // For any other status change (Open, In Progress, Resolved), update immediately
+        // For any other status change (Open -> In Progress), update immediately
         updateData(selectElement, complaintId, 'complaint_status', 'complaint', 'complaint_id');
     }
 }
@@ -186,13 +243,6 @@ callUpdate = (data) => {
  */
 function updateStaffProfile(formElement) {
     var formData = new FormData(formElement);
-
-    // Basic validation
-    if (!formData.get("name").trim()) { errorMessage("Name is required."); return; }
-    if (!formData.get("email").trim()) { errorMessage("Email is required."); return; }
-    if (!formData.get("phone").trim()) { errorMessage("Phone Number is required."); return; }
-    if (!formData.get("nric").trim()) { errorMessage("NRIC is required."); return; }
-    if (!formData.get("department_id").trim()) { errorMessage("Department is required."); return; }
     
     // Add role if disabled (FormData doesn't capture disabled fields)
     var roleSelect = formElement.querySelector('select[name="staff_role"]');
@@ -205,6 +255,17 @@ function updateStaffProfile(formElement) {
     if (deptSelect && deptSelect.disabled) {
         formData.append("department_id", deptSelect.value);
     }
+
+    // Basic required checks
+    if (!formData.get("name")?.trim()) return errorMessage("Name is required.");
+    if (!formData.get("email")?.trim()) return errorMessage("Email is required.");
+    if (!formData.get("phone")?.trim()) return errorMessage("Phone Number is required.");
+    if (!formData.get("nric")?.trim()) return errorMessage("NRIC is required.");
+    if (!formData.get("department_id")?.trim()) return errorMessage("Department is required.");
+
+    // Format validation
+    if (!emailvalidation(formData.get("email"))) return;
+    if (!phonenumber(formData.get("phone"))) return;
 
     $.ajax({
         method: "POST",
