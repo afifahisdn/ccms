@@ -293,7 +293,7 @@ function addStaff($data)
 
     if ($count == 0) {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-        $sql = "INSERT INTO staff(name, email, phone, nric, gender, hashed_password, is_deleted, department_id, staff_role) 
+        $sql = "INSERT INTO staff(name, email, phone, nric, gender, password, is_deleted, department_id, staff_role) 
                 VALUES(?, ?, ?, ?, ?, ?, ?, 0, ?, ?)";
 
         $stmt = mysqli_prepare($con, $sql);
@@ -412,7 +412,7 @@ function createStudent($data)
     mysqli_stmt_close($checkStmt);
 
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-    $insertSql = "INSERT INTO student (student_id, name, email, phone, gender, hashed_password, room_number, is_deleted)
+    $insertSql = "INSERT INTO student (student_id, name, email, phone, gender, password, room_number, is_deleted)
                     VALUES (?, ?, ?, ?, ?, ?, ?, 0)";
 
     $insertStmt = mysqli_prepare($con, $insertSql);
