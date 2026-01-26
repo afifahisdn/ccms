@@ -276,9 +276,10 @@ function addStaff($data)
     $phone = mysqli_real_escape_string($con, $data["phone"]);
     $nric = mysqli_real_escape_string($con, $data["nric"]);
     $gender = mysqli_real_escape_string($con, $data["gender"]);
-    $password = mysqli_real_escape_string($con, $data['password']);
+    $password = mysqli_real_escape_string($con, (int)$data['password']);
     $department_id = mysqli_real_escape_string($con, $data["department_id"]);
     $staff_role = mysqli_real_escape_string($con, $data["staff_role"]);
+    $is_deleted = 0;
 
     if (!in_array($staff_role, ['admin', 'staff'])) {
         echo json_encode(["error" => "Invalid staff role specified"]);
@@ -293,14 +294,14 @@ function addStaff($data)
 
     if ($count == 0) {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-        $sql = "INSERT INTO staff(name, email, phone, nric, gender, password, is_deleted, department_id, staff_role) 
+        $sql = "INSERT INTO staff(name, email, phone, nric, gender, password, is_deleted, department_id, staff_role)
                 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = mysqli_prepare($con, $sql);
         if ($stmt) {
             mysqli_stmt_bind_param(
                 $stmt,
-                "ssssssiss",
+                "sssisiiis",
                 $name,
                 $email,
                 $phone,
