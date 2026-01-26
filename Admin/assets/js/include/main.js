@@ -57,12 +57,12 @@ login = (myForm) => {
         method: "POST",
         url: "../server/api.php?function_code=login",
         data: formData,
-        dataType: 'text', // Expect 'admin' or 'customer'
+        dataType: 'text', // Expect 'admin' or 'student'
         success: function($data) {
             console.log("Login Response:", $data);
             if ($data.trim() == "admin") { // Staff or Admin
                 window.location.href = "index.php"; // Redirect to admin dashboard
-            } else if ($data.trim() == "customer") { // Student
+            } else if ($data.trim() == "student") { // Student
                 window.location.href = "../index.php"; // Redirect to main site
             } else {
                 errorMessage("Email or Password is incorrect.");

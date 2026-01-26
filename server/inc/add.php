@@ -294,19 +294,20 @@ function addStaff($data)
     if ($count == 0) {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
         $sql = "INSERT INTO staff(name, email, phone, nric, gender, password, is_deleted, department_id, staff_role) 
-                VALUES(?, ?, ?, ?, ?, ?, ?, 0, ?, ?)";
+                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = mysqli_prepare($con, $sql);
         if ($stmt) {
             mysqli_stmt_bind_param(
                 $stmt,
-                "sssssssis",
+                "ssssssiss",
                 $name,
                 $email,
                 $phone,
                 $nric,
                 $gender,
-                $hashed_password, 
+                $hashed_password,
+                $is_deleted,
                 $department_id,
                 $staff_role
             );

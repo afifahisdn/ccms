@@ -29,7 +29,7 @@ try {
 
             // --- Authentication ---
         case "login":
-            // getLogin echoes 'admin' (for staff) or 'customer' (for student) directly
+            // getLogin echoes 'admin' (for staff) or 'student' (for student) directly
             header('Content-Type: text/plain');
             echo getLogin($_POST);
             break;

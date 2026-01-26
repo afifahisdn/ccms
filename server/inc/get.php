@@ -582,7 +582,7 @@ function checkCurrentStudentEmail($data)
 }
 
 /**
- * Handles login for both staff/admin and students. Echos 'admin', 'customer', or ''.
+ * Handles login for both staff/admin and students. Echos 'admin', 'student', or ''.
  * @param array $data ['email', 'password']
  */
 function getLogin($data)
@@ -632,7 +632,7 @@ function getLogin($data)
             $_SESSION["student_id"] = $studentRow["student_id"];
             $_SESSION["name"] = $studentRow["name"];
             $_SESSION["email"] = $studentRow["email"];
-            return "customer";
+            return "student";
         }
     }
 
